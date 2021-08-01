@@ -1,0 +1,373 @@
+---
+title: "R Notebook"
+output: Comercial Building Working Group TG2 Scaling Electrificaiton  
+---
+
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+
+###############################################################################
+#                             Set up environment                                #
+###############################################################################
+
+  # Environment 
+    library("tidyverse")
+    library("lubridate")
+    library("fable")
+    library("tsibbledata")
+    library("ggplot2")
+    library("forecast")
+    library("tseries")
+    library("rio")
+    library("zoo")
+    library("readxl")
+    library("tsibbledata")
+
+#Set working site Home or Work
+
+place <- "Home" #work 
+
+#Set proper working Dir 
+if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
+{setwd("C:/Users/prode/Documents/R/cbwg")}
+
+# Check for data directory and if one is not present then make it
+if (!file.exists("data")) {
+  dir.create("data")}
+  
+```
+
+This is a forcast example using the following Youtube video as a walkthrough. 
+Tidy time series forecasting with fable using R.
+Learn more about fable: https://github.com/tidyverts/fable
+https://www.youtube.com/watch?v=6v3_AsbhqrE&list=PLe65q_dzWUgOFNo4I_wa5m-VnXBNugK6V&index=10
+
+Time-series data is changing. Multiple seasonality, irregular time intervals, frequent obsersations, additional noise, missing values, and many variables and series. 
+
+Tooles uses in this process are these packages  tsibble, fable and fasster. 
+For Youtube example the values were dbl formats. had half hour demand with temperture, all by a timestamp "yyyy-mm-dd hh:mm:ss". 
+http://fable.tidyverts.org/
+
+
+they look at monthly, then daily then half-hourly. identify three types of seasonality - weekly daily and senasonal patters. 
+
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+# Plot year, then month, then day, then fifteen minute demand and temperature. 
+# Get temperature data. 
+
+# Read in the electrical data.
+
+
+E <- read_excel("C:/Users/prode/Documents/R/TSP_Energy_Forecasting/data/200 Park Ave_ELECTRICITY_2020-2021.xlsx", skip = 4,col_names = TRUE  ) %>% 
+  select(Date, Value) %>%
+  mutate(kWh = 0.25 * Value)
+E$Date <- mdy_hm(E$Date)
+
+# Read in steam data
+
+S <- read_excel("C:/Users/prode/Documents/R/TSP_Energy_Forecasting/data/200 Park Ave_STEAM_2020-2021.xlsx", skip = 4,col_names = TRUE  ) %>% 
+  select(Date, Value)
+S$Date <- mdy_hm(S$Date)
+```
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+E %>% mutate(Year = year(Date), Month = month(Date), Day = day(Date)) %>% 
+  arrange(Year, Month, Day) %>% data.frame() ->E
+
+E %>% group_by(Year, Month, Day) %>% summarise(`kWh/Day` = sum(kWh)) -> E_Day
+
+E_Day_ts <- ts(E_Day[,"kWh/Day"], start = c(2020, 1), frequency = 265)
+
+autoplot(E_Day_ts)
+
+
+S %>% mutate(Year = year(Date), Month = month(Date), Day = day(Date)) %>% 
+  arrange(Year, Month, Day) %>% data.frame() ->S
+
+S %>% group_by(Year, Month, Day) %>% summarise(`Value/Day` = sum(Value)) -> S_Day
+
+S_Day_ts <- ts(S_Day[,"Value/Day"], start = c(2020, 1), frequency = 265)
+
+
+
+autoplot(E_Day_ts)
+
+ggplot(E, aes(x = Date, y = kWh )) +
+  geom_line()
+autoplot(S_Day_ts)
+
+```
+
+
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+      ##########################################
+      #        TENANT DATA                     #
+      ##########################################
+# Read in Tenant electrical sub-meter data.
+te <- read_csv("C:/Users/prode/Documents/R/TSP_Energy_Forecasting/data/200_Park_-_RawMeterReadData_data.csv", col_names = TRUE  ) %>%  select(Date = DateTimeRead, MeterNumber, Location, Value = `Measure Values`) %>% data.frame()
+te$Date <- mdy_hms(te$Date)
+
+te_plot <- ggplot(te, aes(x = Date, y = Value )) +
+  geom_line()
+
+
+```
+
+
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+      ##########################################
+      #        LL84 DATA                     #
+      ##########################################
+# Read in Tenant electrical sub-meter data.
+L84_2017 <- read_excel("C:/Users/prode/Documents/R/TSP_Energy_Forecasting/data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2017) %>%  select("Year", "Property Name", "Borough" ,  "GSF" = "Self-Reported Gross Floor Area (ft²)", "Year Built", "Fuel Oil #1 Use (kBtu)","Fuel Oil #2 Use (kBtu)" , "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kWh)", "NYC Building Identification Number (BIN)" ) %>% data.frame()
+
+L84_2016 <- read_excel("C:/Users/prode/Documents/R/TSP_Energy_Forecasting/data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2016) %>%  select("Year", "Property Name", "Borough" , "GSF" =  "Property GFA - Self-Reported (ft²)", "Year Built", "Fuel Oil #1 Use (kBtu)","Fuel Oil #2 Use (kBtu)" , "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "NYC Building Identification Number (BIN)" ) %>% data.frame()
+
+
+
+
+L84_2017 %>% select('Natural.Gas.Use..kBtu.', 'Fuel.Oil..4.Use..kBtu.', "Fuel.Oil..2.Use..kBtu.", "Electricity.Use...Grid.Purchase..kWh.") %>% colSums(na.rm = TRUE)
+
+
+
+
+
+
+L84_2017_gas <- sum(L84_2017$Natural.Gas.Use..kBtu., na.rm = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE}
+#Before making time series be sure the order is right and make a clean count feature. 
+E <- E[order(E[,"Date"]),]
+E_ts = ts(E[, c("kWh")])
+E$clean_count = tsclean(E$'kWh')
+plot(E_ts)
+
+
+#Running the decompose function with both additive and Multiplicative. With additive being Ts = Seasonal + Trend + Random, and multiplicative being Ts = Seasonal x trend x random. 
+
+
+
+#Read in the steam data. 
+S <- read_csv("C:/Users/paulr/Documents/R/EnergyForecasting/data/MACH Energy - Data (S).csv", skip = 0, na = "Not Available") 
+
+#Before making time series be sure the order is right and make a clean count feature. 
+S <- S[order(E[,"Date"]),]
+S_ts = ts(S[, c("Value")])
+S$clean_count = tsclean(S$'kWh')
+plot(S_ts)
+
+
+```
+
+Model specifications and estimation.
+ETS(tsibble, formulam ...)
+ARIMA(tsibble, formula, ...)
+TSLM(tsibble, formula, ...)
+and many more. 
+
+Model specification with formulas. 
+Exmaple: transformation(y) ~ trend() + season(period="day") + X
+Like the lk() function rules. 
+
+LHS: Responce
+Defines the data's responce variable
+Specificaiton of transformations (with automatic back transformation)
+
+RHS: Specials
+Model specific specia functions
+Exogenous regressors 
+
+
+Plotting temperutere on time and demand on time and stacking to show visually relationships is recomended. 
+
+tsbl_elec <- tsibbledata::vic_elec %>% filter(Date < ymd("2014-03-01"))
+fbl_elec_fit <- tsbl_elec %>%
+  model(ARIMA(Demand ~ WorkDay + Temperature + I(Temperature^2),
+  pdq(1,0,1) + PDQ(1,1,1, period = "day")))
+
+# # A mable: 1 model
+# model
+# <model>
+# 1LM w/ ARIMA(1,0,1)(1,1,1)[48] erros 
+
+
+Extract model information using tidy funcitons using the broom package
+augment(mable, ....)
+tidy(mable, ...)
+glance(mable, ...)
+components(mable, ...)
+
+Intresting plot can be made using these.
+components(fbl_cafe_fit) %>%
+  gather(component, value, level, slope, season) %>%
+  ggplot(aes(x = Month, y = value)) +
+  geom_line() +
+  facet_grid(vrs(component), scales = "free_y")
+  
+
+Forcast future values
+forcast(mable, new_data, h, ...)
+Example: fit_cafe_fc <- fbl_cafe_fit %>% forcast(h=24)
+fbl_cafe_fc %>% autoplot(vic_cafe)
+
+
+Electric Demand example
+tsbl_elec_new <- tsibbledata::elecdemand %>% 
+  filter(index >= ymd("2014-03-01"), index < ymd("2014-03-14"))
+fbl_elec_fc <- fbl_elec_fit %>%
+  forecast(tsbl_elec_new)
+
+fbl_elec_fc %>% autoplot(tsbl_elec)
+
+
+  
+```{r}
+tsbl_elec <- tsibbledata::vic_elec %>% filter(Date < ymd("2014-03-01")) %>% mutate("WorkDay" = wday(Date) )
+
+
+fbl_elec_fit <- tsbl_elec %>%
+  model(arima = ARIMA(Demand ~ WorkDay + Temperature + I(Temperature^2)))
+        #, pdq(1,0,1) + PDQ(1,1,1, period = "day"))
+
+
+
+tsbl_elec_new <- tsibbledata::vic_elec %>% 
+  filter(Date >= ymd("2014-03-01"), Date < ymd("2014-03-14"))
+
+
+fbl_elec_fc <- fbl_elec_fit %>%
+  forecast(tsbl_elec_new)
+
+view(vic_elec)
+view(tsbl_elec_new)
+```
+
+
+Accurach evaluation to compare models 
+accuracy(mable, measures, ...)
+accuracy(fable, new_data, measures, ...)
+
+fbl_cafe_fit %>% accuracy()
+
+Or
+
+fbl_elec_fc %>% accuracy(tsbl_elec_new)
+
+
+This makes 152 models. 
+fbl_cafe_fit 
+retail_ets <- tsibbledata::ausretail %>
+  ETS(Turnover)
+
+
+Now use 
+
+Extract(broom::augment)
+augment(retail_ets) 
+
+Extract(broom::tidy)
+tidy(retail_ets)
+
+Extract(broom::glance)
+glance(retail_ets)
+
+Extract(fable::components)
+components(retail_ets)
+
+Example:
+components(retail_ets) %>%
+  filter(Industry == "Cafes, restaurants and takeaway food services") %>%
+  ggplot(aes(x = Month, y = level, color = State)) +
+  geom_line()
+  
+
+Forecast
+retail_fc <- retail_ets %>% forecast(h=24)
+
+Evaluate 
+retail_ets %>% accuracy()
+measures? to check difference in accuracy maybe? 
+```{r}
+
+```
+
+Forecasting with Fasster showing electric 
+
+fasster_fit <- tsbl_elec %>%
+  fasster(log(Demand) ~ WorkDay %S% (trig(48,16) + poly(1)) + Temperture + I(Temperture^2)) 
+  
+using exoginest regressors for workday and temperture.
+
+fasster_fc <- fasster_fit %>% 
+  forecast(tsbl_elec_new) 
+  
+  fasster_fc %>% 
+    autoplot(tsbl_elec)
+    
+```{r}
+
+
+```
+
+
+Coming Simulate() future paths 
+
+set.seed(20181108)
+vic_cafe_sim <- fbl_cafe_fit %>%
+  simulate( h = 24, times = 5)
+  
+  
+vic_cafe %>% 
+  filter(year(Month) >= 2021) %>% 
+  autoplot(Turnover) + 
+  geom_line(aes(y = .sim, group = .rep), alpha = 0.3, data = vic_cafe_sim)
+  
+  
+Feture: interpolate() missing values
+
+tsibbledata::olympic_running 
+
+fit a model then interpolate.
+
+olympic_complete <- olympic_running %>% 
+  TSLM(Time ~ trend()) %>%
+  interpolate(olympic_running) 
+  
+  refit() allows a model to be applied to a new dataset
+  stream() allows a model to be extended using new data
+  
+  stream is good when you have a model and get additional time series data you just add it and the modeling is redone. 
+  
+  fasster_stream <- fasster_fit %>% stream(tsbl_elec_new) 
+  
+Decomposition forecasting
+library(tsibblestats)
+cafe_dcmp <- vic_cafe %>% STL(log(Turnover)) 
+
+
+Interval and distribution accuracy
+fbl_elec_fc %>% 
+accuracy(
+  new_data = tsbl_elec_new,
+  measures = list(winkler = winkler_score, percentile = perentiale_score)
+  
+  
+)
