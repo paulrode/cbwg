@@ -37,24 +37,25 @@ if (!file.exists("data")) {
 # Read in LL84 data 
 
 
-L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2017) %>%  
-  select("Year", "Property Name", "Borough" ,  "GSF" = "Self-Reported Gross Floor Area (ft²)", "Year Built", "Fuel Oil #1 Use (kBtu)","Fuel Oil #2 Use (kBtu)" , "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kWh)", "NYC Building Identification Number (BIN)" ) %>% data.frame()
-L84_2017$Year.Built <- as.character (L84_2017$Year.Built)
+L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2017) %>% data.frame()  %>% select(`BBL...10.digits`, "gsf" = DOF.Gross.Floor.Area..ft².)
 
-L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2016) %>%  
-  select("Year", "Property Name", "Borough" , "GSF" =  "Property GFA - Self-Reported (ft²)", "Year Built", "Fuel Oil #1 Use (kBtu)","Fuel Oil #2 Use (kBtu)" , "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "NYC Building Identification Number (BIN)" ) %>% data.frame()
+L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2016) %>%  data.frame() %>% select(`BBL...10.digits`,"gsf" = DOF.Gross.Floor.Area )
 
 
-L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2015) %>%  
-  select("Year", "Property Name", "Borough" , "GSF" =  "Largest Property Use Type - Gross Floor Area (ft²)", "Year Built", "Fuel Oil #1 Use (kBtu)","Fuel Oil #2 Use (kBtu)" , "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "Reported NYC Building Identification Numbers (BINs)") %>% data.frame()
+L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2015)  %>% data.frame()  %>% select(`NYC.Borough..Block.and.Lot..BBL.`, "gsf" = Largest.Property.Use.Type...Gross.Floor.Area..ft².)
 
-L84_2014 <- read_excel("data/2014_nyc_benchmarking.xlsx", sheet = "WORKING FILE", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2014) %>%  data.frame()
 
-L84_2013 <- read_csv("data/2013_nyc_benchmarking.csv", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2013) %>%  data.frame()
+L84_2014 <- read_excel("data/2014_nyc_benchmarking.xlsx", sheet = "WORKING FILE", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2014) %>%  data.frame() %>%
+  select('NYC.Borough..Block..and.Lot..BBL.', "gsf" = Reported.Property.Floor.Area..Building.s....ft².)
 
-L84_2012 <- read_csv("data/2012_nyc_benchmarking.csv", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2012) %>%  data.frame()
+L84_2013 <- read_csv("data/2013_nyc_benchmarking.csv", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2013) %>%  data.frame() %>%
+  select(BBL,"gsf" = DOF.Property.Floor.Area..Buildngs.and.Parking..ft2. , "type" = Primary.Property.Type...Self.Selected)
 
-L84_2011 <- read_excel("data/2011_nyc_benchmarking.xls", sheet = "Energy and Water Data Disclosu", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2011) %>%  data.frame()
+L84_2012 <- read_csv("data/2012_nyc_benchmarking.csv", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2012) %>%  data.frame() %>%
+  select(BBL, "gsf" = Property.Floor.Area..Buildngs.and.Parking..ft2.)
+
+L84_2011 <- read_excel("data/2011_nyc_benchmarking.xls", sheet = "Energy and Water Data Disclosu", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2011) %>%  data.frame() %>%
+ select(BBL, "gsf" = Reported.Building.Square.Footage)
 
 
 
