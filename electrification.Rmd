@@ -15,7 +15,7 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Set working site Home or Work
-place <- "Home" #work 
+place <- "work" #"Home" 
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -47,7 +47,7 @@ Largest.Property.Use.Type, DOF.Gross.Floor.Area , Address.1..self.reported., Bor
 colnames(L84_2016) <- c("Year", "BBL", "BIN", "Catagory", "GSF", "Address", "Borough", "Built", "NGas (kBtu)", "Electric (kBtu)" , "1 Oil (kBth)", "2 Oil (kBth)", "4 Oil (kBth)", "6 Oil (kBth)")
 
 
-
+ 
 
 L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = ""  ) %>%   mutate(Year = 2015)  %>% data.frame()  %>% select(`NYC.Borough..Block.and.Lot..BBL.`, "gsf" = Largest.Property.Use.Type...Gross.Floor.Area..ft².)
 
