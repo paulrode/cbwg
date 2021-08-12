@@ -31,7 +31,10 @@ rm(place, my_packages )
 ```
 
 
-
+The goal with this data project is to use the LL84 benchmarking to identify the thermal potential in each of the building typologies. 
+1. Identify the kBTU's of gas, oil and district steam used (thermal fuel) in the commercial stock.
+2. Allocate the thermal fuel among building typologies. 
+3. Show ranking of typologies by sf and thermal fule volumn. 
 
 
 
