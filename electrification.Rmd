@@ -41,22 +41,21 @@ rm(place, my_packages )
 
 
 L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%   mutate(Year = 2017) %>% data.frame()%>% select(Year, `BBL...10.digits`, NYC.Building.Identification.Number..BIN.,
-Largest.Property.Use.Type, Self.Reported.Gross.Floor.Area..ft². , Address.1..self.reported., Borough, Year.Built, Natural.Gas.Use..kBtu., Electricity.Use...Grid.Purchase..kBtu., Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu. , Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu. )
+Largest.Property.Use.Type, Self.Reported.Gross.Floor.Area..ft². , Address.1..self.reported., Borough, Year.Built, Natural.Gas.Use..kBtu., Electricity.Use...Grid.Purchase..kBtu., Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu. , Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu. ) %>% unique()
+L84_2017[is.na(L84_2017)] <- 0
 
 colnames(L84_2017) <- c("Year", "BBL", "BIN", "Catagory", "GSF", "Address", "Borough", "Built", "NGas (kBtu)", "Electric (kBtu)" , "1 Oil (kBth)", "2 Oil (kBth)", "4 Oil (kBth)", "6 Oil (kBth)")
-L84_2017[is.na(L84_2017)] <- 0
 L84_2017$Catagory <- as.factor(L84_2017$Catagory)
 
-summary(L84_2017)
+L84_2017$bins <- cut(L84_2017$GSF, breaks = c(0,50e3, 100e3, 500e3, 1000e3, 5000e3))
 
+GSF_bins <- L84_2017 %>%
+  group_by(bins) %>%
+  summarise( GSF = sum(GSF))
 
-L84_2017.duplicates <- L84_2017[duplicated(L84_2017),]
-L84_2017 <- unique(L84_2017)
-str(L84_2017)
+ggplot(data = GSF_bins, aes( x = bins, y = GSF )) +
+  geom_bar(stat = "identity") 
 
-
-
-L84_2017[is.na(L84_2017)] <- 0
 
 
 
