@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
-place <- "Home"
-# place <-  "work"
+# place <- "Home"
+place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -49,16 +49,20 @@ L84_2017[is.na(L84_2017)] <- 0
 L84_2017 <- L84_2017 %>% mutate("total.thermal" = (Natural.Gas.Use..kBtu. + Fuel.Oil..1.Use..kBtu. + Fuel.Oil..2.Use..kBtu. + Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.))
 L84_2017$Largest.Property.Use.Type <- as.factor(L84_2017$Largest.Property.Use.Type)
 
-colnames(L84_2017) <- c("Year", "BBL", "BIN", "Catagory", "GSF", "Address", "Borough", "Built", "NGas (kBtu)", "Electric (kBtu)" , "1 Oil (kBth)", "2 Oil (kBth)", "4 Oil (kBth)", "6 Oil (kBth)","count", "total.thermal")
+colnames(L84_2017) <- c("Year", "BBL", "BIN", "Catagory", "GSF", "Address", "Borough", "Built", "NGas (kBtu)", "Electric (kBtu)" , "1 Oil (kBth)", "2 Oil (kBth)", "4 Oil (kBth)", "6 Oil (kBth)", "total.thermal")
 
 #Identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
-L84_2017$bins <- cut(L84_2017$GSF, breaks = c(0,50e3, 100e3, 500e3, 1000e3, 9000e3))
+L84_2017$bins <- cut(L84_2017$GSF, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE)
+L84_2017$Dates <- cut(L84_2017$Built, breaks = c(0, 1942, 1980, 2000, 2021), labels = FALSE)
 GSF_bins <- L84_2017 %>%
   group_by(Catagory, bins) %>%
-  summarise(GSF = sum(GSF), Num.Buildings = n(), Thermal = sum(total.thermal), `Electric` = sum(`Electric (kBtu)`)) 
+  summarise(GSF = sum(GSF), Num.Buildings = n(), 'Thermal (kBtu)' = sum(total.thermal), `Electric (kBtu)` = sum(`Electric (kBtu)`)) 
+
+GSF_bins_dates <- L84_2017 %>%
+  group_by(Catagory, bins, Dates) %>%
+  summarise(GSF = sum(GSF), Num.Buildings = n(), 'Thermal (kBtu)' = sum(total.thermal), `Electric (kBtu)` = sum(`Electric (kBtu)`)) 
 
 
-summary(L84_2017)
 
 # Remove outliers for gsf NGas and Electric Usage
 take.out <- 10
@@ -67,13 +71,18 @@ L84_2017[take.out:(nrow(L84_2017)-take.out),] -> L84_2017
 L84_2017 %>% arrange(`NGas (kBtu)`) -> L84_2017
 remove(take.out)
 
+
+
 ggplot(data = GSF_bins, aes( x = bins, y = GSF )) +
   geom_bar(stat = "identity") 
 
-L84_2017.sum.catagory <- L84_2017 %>% filter(Catagory == "Office") %>% group_by(Catagory) %>% summarise(GSF = sum(GSF), NGas = sum(`NGas (kBtu)`), Elect = sum(`Electric (kBtu)`))
+
+GSF_bins_dates %>% filter(Catagory == "Office")
 
 
-# Load in LL84 Data for 2016
+
+
+
 
 ```
 
