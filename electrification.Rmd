@@ -53,25 +53,42 @@ L84_2017b <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", 
   select("Property.Id", "Property.Name", "BBL...10.digits", "NYC.Building.Identification.Number..BIN.", "Address.1..self.reported.", "Postal.Code", "Borough", "Self.Reported.Gross.Floor.Area..ft².", "List.of.All.Property.Use.Types.at.Property", "Year.Built", "Number.of.Buildings", "Site.EUI..kBtu.ft².","Fuel.Oil..1.Use..kBtu.", "Fuel.Oil..2.Use..kBtu.",       "Fuel.Oil..4.Use..kBtu.", "Fuel.Oil..5...6.Use..kBtu.", "Diesel..2.Use..kBtu.",        "Propane.Use..kBtu.", "District.Steam.Use..kBtu.", "District.Hot.Water.Use..kBtu.",    "District.Chilled.Water.Use..kBtu.","Natural.Gas.Use..kBtu.", "Electricity.Use...Grid.Purchase..kBtu.", "Electricity.Use...Grid.Purchase..kWh.")
 L84_2017a$BBL...10.digits <- as.character(L84_2017a$BBL...10.digits)
 
-bind_rows(L84_2017a, L84_2017b) -> L84_2017
+#combine datasets deleting duplicates and remove import files
 union(L84_2017a, L84_2017b) -> L84_2017
+remove("L84_2017a", "L84_2017b")
 
-
-
- %>% unique() %>%  filter(Self.Reported.Gross.Floor.Area..ft². >= 50000, Self.Reported.Gross.Floor.Area..ft². < 9000000) %>% filter(Largest.Property.Use.Type != "0")
+#Change NA's to 0s
 L84_2017[is.na(L84_2017)] <- 0
+
+#Add GSF bins to identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
+c <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
+L84_2017$bins <- cut(L84_2017$`Self.Reported.Gross.Floor.Area..ft².`, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = c ) 
+d <- c("pre 1942", "1942 to 1980", "1980 to 2000")
+L84_2017$Year.Built <- cut(L84_2017$Year.Built, breaks = c(0, 1942, 1980, 2021),dig.lab = 4, labels = d)
+
+L84_2017 %>% ggplot(aes( x = Year.Built, y = `Site.EUI..kBtu.ft².`)) +
+  geom_point()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 L84_2017 <- L84_2017 %>% 
   mutate("total.thermal (kBtu)" = (Natural.Gas.Use..kBtu. + District.Steam.Use..kBtu. +Fuel.Oil..1.Use..kBtu. +   Fuel.Oil..2.Use..kBtu. + Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.)) %>%
  mutate("thermal (kBtu/GSF)" = `total.thermal (kBtu)`/ Self.Reported.Gross.Floor.Area..ft².) 
 L84_2017$Largest.Property.Use.Type <- as.factor(L84_2017$Largest.Property.Use.Type)
 
-colnames(L84_2017) <- c("Year", "BBL", "BIN", "Catagory", "GSF", "Address", "Borough", "Built", "NGas (kBtu)",    "District.Steam.Use..kBtu.", "Electric (kBtu)" , "1 Oil (kBth)", "2 Oil (kBth)", "4 Oil (kBth)", "6 Oil (kBth)", "thermal (kBtu)", "thermal/GSF")
 
-#Identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
-c <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
-L84_2017$bins <- cut(L84_2017$GSF, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = c ) 
-d <- c("pre 1942", "1942 to 1980", "1980 to 2000")
-L84_2017$Dates <- cut(L84_2017$Built, breaks = c(0, 1942, 1980, 2021),dig.lab = 4, labels = d)
+
 
 L84_2017 %>% ggplot(aes( x = Built, y = `thermal/GSF`)) +
   geom_point()
