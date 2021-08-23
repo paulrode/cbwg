@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
- place <- "Home"
-#place <-  "work"
+#place <- "Home"
+place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -89,13 +89,26 @@ L84_2017 %>% filter(`Self.Reported.Gross.Floor.Area..ft².` >= 25000) %>%
 
 
 L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
+  filter(List.of.All.Property.Use.Types.at.Property == "Office") %>%
+  ggplot(aes( x = Year.Built, y = EUI, color = List.of.All.Property.Use.Types.at.Property)) +
+  geom_point()
+
+```
+
+
+
+
+
+
+
+
+
+
+L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
   ggplot(aes( `Site.EUI..kBtu.ft².`)) +
   geom_histogram()
 
 
-L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  ggplot(aes( x = Year.Built, y = EUI)) +
-  geom_point()
 
 
 
