@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
-place <- "Home"
-# place <-  "work"
+#place <- "Home"
+ place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -56,7 +56,7 @@ L84_2017a$BBL...10.digits <- as.character(L84_2017a$BBL...10.digits)
 #combine datasets deleting duplicates and remove import files
 union(L84_2017a, L84_2017b) -> L84_2017
 remove("L84_2017a", "L84_2017b")
-L84_2017$List.of.All.Property.Use.Types.at.Property <- as.factor(L84_2017$List.of.All.Property.Use.Types.at.Property)
+L84_2017Primary.Property.Type...Self.Selected <- as.factor(L84_2017$Primary.Property.Type...Self.Selected)
 
 
 #Add GSF bins to identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
@@ -91,9 +91,9 @@ L84_2017 %>% filter(`Self.Reported.Gross.Floor.Area..ft².` >= 25000) %>%
 
 
 L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  filter(List.of.All.Property.Use.Types.at.Property == "Office") %>%
-  ggplot(aes( x = Year.Built, y = EUI, color = List.of.All.Property.Use.Types.at.Property)) +
-  geom_point()
+  filter(Primary.Property.Type...Self.Selected == "Office" | Primary.Property.Type...Self.Selected == "Multifamily Housing") %>%
+  ggplot(aes( x = bins, y = EUI, color = Primary.Property.Type...Self.Selected)) +
+  geom_boxplot()
 
 ```
 
