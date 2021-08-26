@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
-# place <- "Home"
- place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -100,9 +100,20 @@ L84_2017 %>%
   group_by(Primary.Property.Type...Self.Selected) %>%
   summarise(GSF = sum(`Self.Reported.Gross.Floor.Area..ft².`)) %>%
   arrange(desc(GSF), by_group = TRUE) %>%
-  mutate("%" = 100*GSF/sum(GSF))
--> GSF_Table
-  
+  mutate("%" = 100*GSF/sum(GSF)) -> GSF_Table
+GSF_Table$GSF <- as.numeric(GSF_Table$GSF)
+GSF_Table$`%` <- as.numeric(GSF_Table$`%`)
+GSF_Table[] <- lapply(GSF_Table, format, decimal.mark = ",", digits = 0, scientific = FALSE, trim = TRUE)
+
+L84_2017 %>%
+  group_by(Primary.Property.Type...Self.Selected) %>%
+  summarise(`Total.Thermal (kBTU)`= sum(`Total.Thermal (kBTU)`)) %>%
+  arrange(desc(`Total.Thermal (kBTU)`), by_group = TRUE) %>%
+  mutate("Total.Thermal %" = 100 * `Total.Thermal (kBTU)`/sum(`Total.Thermal (kBTU)`)) -> TT_Table
+TT_Table$`Total.Thermal %` <- format(TT_Table$`Total.Thermal %`, digits = 1, scientific = FALSE)
+
+
+GSF_Table
 
 ```
 
