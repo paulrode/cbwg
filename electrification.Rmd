@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
- place <- "Home"
-# place <-  "work"
+# place <- "Home"
+ place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -92,9 +92,28 @@ colnames(type.table) <- c("Primary.Property.Type...Self.Selected", "Property.Typ
 L84_2017 <- left_join(L84_2017, type.table, by = "Primary.Property.Type...Self.Selected")
 L84_2017$Property.Type <- as.factor(L84_2017$Property.Type)
 
-L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
+
+#EUI Box
+L84_2017 %>% 
+  filter(`Site.EUI..kBtu.ft².` < 500) %>%
   ggplot(aes( x = Property.Type, y = EUI, color = Property.Type)) +
   geom_boxplot()
+
+#EUI by type and range
+L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
+  filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
+  ggplot(aes( x = Year.Range, y = EUI, color = Property.Type, fill=Property.Type)) +
+  geom_boxplot()
+
+#Box of gas vol
+L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
+  filter(Natural.Gas.Use..kBtu. < 10000000) %>%
+  filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
+  ggplot(aes( x = Year.Range, y = Natural.Gas.Use..kBtu., color = Property.Type, fill=Property.Type)) +
+  geom_boxplot()
+
+
+
 
 L84_2017 %>% 
   group_by(Primary.Property.Type...Self.Selected) %>%
@@ -105,15 +124,22 @@ GSF_Table$GSF <- as.numeric(GSF_Table$GSF)
 GSF_Table$`%` <- as.numeric(GSF_Table$`%`)
 GSF_Table[] <- lapply(GSF_Table, format, decimal.mark = ",", digits = 0, scientific = FALSE, trim = TRUE)
 
-L84_2017 %>%
+
+L84_2017 %>% 
   group_by(Primary.Property.Type...Self.Selected) %>%
-  summarise(`Total.Thermal (kBTU)`= sum(`Total.Thermal (kBTU)`)) %>%
-  arrange(desc(`Total.Thermal (kBTU)`), by_group = TRUE) %>%
-  mutate("Total.Thermal %" = 100 * `Total.Thermal (kBTU)`/sum(`Total.Thermal (kBTU)`)) -> TT_Table
-TT_Table$`Total.Thermal %` <- format(TT_Table$`Total.Thermal %`, digits = 1, scientific = FALSE)
+  summarise(TThermal.MMBtu = sum(`Total.Thermal (kBTU)`)/1000) %>%
+  arrange(desc(TThermal.MMBtu, by_group = TRUE)) %>%
+  mutate("%" = 100*TThermal.MMBtu/sum(TThermal.MMBtu)) -> TThermal_Table
+TThermal_Table$TThermal.MMBtu <- as.numeric(TThermal_Table$TThermal.MMBtu)
+TThermal_Table$`%` <- as.numeric(TThermal_Table$`%`)
+TThermal_Table[] <- lapply(TThermal_Table, format, decimal.mark = ",", digits = 0, scientific = FALSE, trim = TRUE)
 
 
-GSF_Table
+
+
+
+
+
 
 ```
 
