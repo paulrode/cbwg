@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
-# place <- "Home"
- place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -72,7 +72,8 @@ remove(c,d) #clean up environment
 L84_2017 %>% rowwise() %>%  mutate("Total.Thermal (kBTU)" = sum(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu.,  Diesel..2.Use..kBtu. , Propane.Use..kBtu. , District.Steam.Use..kBtu. , District.Hot.Water.Use..kBtu. + District.Chilled.Water.Use..kBtu. , Natural.Gas.Use..kBtu., na.rm = TRUE) ) -> L84_2017
 
 # Calculate Site EUI to compare to vales in the data frame
-L84_2017 %>% mutate("EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), (`Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`, (Electricity.Use...Grid.Purchase..kBtu. + `Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`)) -> L84_2017
+L84_2017 %>% mutate("EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), (`Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`, (Electricity.Use...Grid.Purchase..kBtu. + `Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`)) %>%
+  mutate("Electric EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), 0, Electricity.Use...Grid.Purchase..kBtu./`Self.Reported.Gross.Floor.Area..ft².`), "Thermal EUI" = `Total.Thermal (kBTU)`/`Self.Reported.Gross.Floor.Area..ft².`) -> L84_2017
 
 
 # Remove bad data using following rules: 
@@ -112,6 +113,13 @@ L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
   ggplot(aes( x = Year.Range, y = Natural.Gas.Use..kBtu., color = Property.Type, fill=Property.Type)) +
   geom_boxplot()
 
+
+#Box of gas vol
+L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
+  filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
+  ggplot(aes( x = Year.Range, y = `Electric EUI`,)) +
+  geom_col(color = "Red", position = "dodge") +
+  geom_col(aes(x = Year.Range, y = `Thermal EUI`), color = "Blue", position = "dodge") 
 
 
 
