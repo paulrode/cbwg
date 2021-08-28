@@ -10,7 +10,7 @@ output: Comercial Building Working Group TG2 Scaling Electrificaiton
 #                             Set up environment                                #
 ###############################################################################
 
-my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata") 
+my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra") 
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
@@ -73,8 +73,7 @@ L84_2017 %>% rowwise() %>%  mutate("Total.Thermal (kBTU)" = sum(Fuel.Oil..1.Use.
 
 # Calculate Site EUI to compare to vales in the data frame
 L84_2017 %>% mutate("EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), (`Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`, (Electricity.Use...Grid.Purchase..kBtu. + `Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`)) %>%
-  mutate("Electric EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), 0, Electricity.Use...Grid.Purchase..kBtu./`Self.Reported.Gross.Floor.Area..ft².`), "Thermal EUI" = `Total.Thermal (kBTU)`/`Self.Reported.Gross.Floor.Area..ft².`) -> L84_2017
-
+  mutate("Electric EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), 0, Electricity.Use...Grid.Purchase..kBtu./`Self.Reported.Gross.Floor.Area..ft².`), "Thermal EUI" = `Total.Thermal (kBTU)`/`Self.Reported.Gross.Floor.Area..ft².`, "EUI (Thermal/Total)" = `Thermal EUI`/EUI) -> L84_2017
 
 # Remove bad data using following rules: 
   #(1) Rows with 0 buildings. 
@@ -92,19 +91,44 @@ load( "./data/typetable.RData")
 colnames(type.table) <- c("Primary.Property.Type...Self.Selected", "Property.Type")
 L84_2017 <- left_join(L84_2017, type.table, by = "Primary.Property.Type...Self.Selected")
 L84_2017$Property.Type <- as.factor(L84_2017$Property.Type)
+```
 
 
-#EUI Box
+
+
+
+
+
+
+
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+#EUI 
 L84_2017 %>% 
   filter(`Site.EUI..kBtu.ft².` < 500) %>%
   ggplot(aes( x = Property.Type, y = EUI, color = Property.Type)) +
   geom_boxplot()
+
+L84_2017 %>% 
+  ggplot(aes(x = `EUI (Thermal/Total)`)) + 
+  geom_density() +
+  geom_vline(xintercept=mean(L84_2017$`EUI (Thermal/Total)` , na.rm = TRUE) ,color="blue", linetype="dashed", size=1)
 
 #EUI by type and range
 L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
   filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
   ggplot(aes( x = Year.Range, y = EUI, color = Property.Type, fill=Property.Type)) +
   geom_boxplot()
+
+```
+
+
+
+
+
+
+
+
 
 #Box of gas vol
 L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
@@ -141,12 +165,6 @@ L84_2017 %>%
 TThermal_Table$TThermal.MMBtu <- as.numeric(TThermal_Table$TThermal.MMBtu)
 TThermal_Table$`%` <- as.numeric(TThermal_Table$`%`)
 TThermal_Table[] <- lapply(TThermal_Table, format, decimal.mark = ",", digits = 0, scientific = FALSE, trim = TRUE)
-
-
-
-
-
-
 
 
 ```
