@@ -94,8 +94,31 @@ L84_2017$Property.Type <- as.factor(L84_2017$Property.Type)
 ```
 
 
+What is the total thermal energy as reported through the Benchamrking Law, and how does that compair to Electrical energy used in the same buildings. 
+```{r, echo="FALSE", include=FALSE, message=FALSE}
 
+L84_2017 %>%
+  summarise("NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" = sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE)) -> Total.Energy
 
+Total.Energy %>%
+  gather(key = "Fuel.Source", value = "kBtu" ) %>%
+  arrange(desc(kBtu))%>%
+  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
+  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
+  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  
+
+Total.Energy%>%
+  mutate("Total.Thermal.(kBtu)" = `NGas.(kBtu)`+ Oil.No1 + Oil.No2 + `Oil,No4` + `Oil.No5&6`+ `Diesel.(kBtu)`+ `Propane.(kBtu)`+ `Steam.(kBtu)`) %>%
+  select(`Total.Thermal.(kBtu)`, `Elect.(kBtu)`) %>%
+  gather(key = "Fuel.Source", value = "kBtu" ) %>% 
+  arrange(desc(kBtu))%>%
+  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
+  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
+  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  
+
+```
 
 
 
