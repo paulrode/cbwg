@@ -45,12 +45,12 @@ The goal with this data project is to use the LL84 benchmarking to identify the 
 L84_2017a <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%   
   mutate(Data = "Information and Metrics") %>% 
   data.frame() %>% 
-  select("Property.Id", "Property.Name", "BBL...10.digits", "NYC.Building.Identification.Number..BIN.", "Address.1..self.reported.", "Postal.Code", "Borough", "Self.Reported.Gross.Floor.Area..ft².", "Primary.Property.Type...Self.Selected", "Year.Built", "Number.of.Buildings", "Site.EUI..kBtu.ft².","Fuel.Oil..1.Use..kBtu.", "Fuel.Oil..2.Use..kBtu.",       "Fuel.Oil..4.Use..kBtu.", "Fuel.Oil..5...6.Use..kBtu.", "Diesel..2.Use..kBtu.",        "Propane.Use..kBtu.", "District.Steam.Use..kBtu.", "District.Hot.Water.Use..kBtu.",    "District.Chilled.Water.Use..kBtu.","Natural.Gas.Use..kBtu.", "Electricity.Use...Grid.Purchase..kBtu.", "Electricity.Use...Grid.Purchase..kWh.")
+  select("Property.Id", "Property.Name", "BBL...10.digits", "NYC.Building.Identification.Number..BIN.", "Address.1..self.reported.", "Postal.Code", "Borough", "Self.Reported.Gross.Floor.Area..ft².", "Source.EUI..kBtu.ft².", "Primary.Property.Type...Self.Selected", "Year.Built", "Number.of.Buildings", "Site.EUI..kBtu.ft².","Fuel.Oil..1.Use..kBtu.", "Fuel.Oil..2.Use..kBtu.",       "Fuel.Oil..4.Use..kBtu.", "Fuel.Oil..5...6.Use..kBtu.", "Diesel..2.Use..kBtu.",        "Propane.Use..kBtu.", "District.Steam.Use..kBtu.", "District.Hot.Water.Use..kBtu.",    "District.Chilled.Water.Use..kBtu.","Natural.Gas.Use..kBtu.", "Electricity.Use...Grid.Purchase..kBtu.", "Electricity.Use...Grid.Purchase..kWh.")
 
 L84_2017b <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names = TRUE, na = "NA"  ) %>%   
   mutate(Data = "Multi-BBL") %>% 
   data.frame() %>% 
-  select("Property.Id", "Property.Name", "BBL...10.digits", "NYC.Building.Identification.Number..BIN.", "Address.1..self.reported.", "Postal.Code", "Borough", "Self.Reported.Gross.Floor.Area..ft².", "Primary.Property.Type...Self.Selected", "Year.Built", "Number.of.Buildings", "Site.EUI..kBtu.ft².","Fuel.Oil..1.Use..kBtu.", "Fuel.Oil..2.Use..kBtu.",       "Fuel.Oil..4.Use..kBtu.", "Fuel.Oil..5...6.Use..kBtu.", "Diesel..2.Use..kBtu.",        "Propane.Use..kBtu.", "District.Steam.Use..kBtu.", "District.Hot.Water.Use..kBtu.",    "District.Chilled.Water.Use..kBtu.","Natural.Gas.Use..kBtu.", "Electricity.Use...Grid.Purchase..kBtu.", "Electricity.Use...Grid.Purchase..kWh.")
+  select("Property.Id", "Property.Name", "BBL...10.digits", "NYC.Building.Identification.Number..BIN.", "Address.1..self.reported.", "Postal.Code", "Borough", "Self.Reported.Gross.Floor.Area..ft².", "Primary.Property.Type...Self.Selected", "Year.Built", "Number.of.Buildings", "Source.EUI..kBtu.ft².", "Site.EUI..kBtu.ft².","Fuel.Oil..1.Use..kBtu.", "Fuel.Oil..2.Use..kBtu.",       "Fuel.Oil..4.Use..kBtu.", "Fuel.Oil..5...6.Use..kBtu.", "Diesel..2.Use..kBtu.",        "Propane.Use..kBtu.", "District.Steam.Use..kBtu.", "District.Hot.Water.Use..kBtu.",    "District.Chilled.Water.Use..kBtu.","Natural.Gas.Use..kBtu.", "Electricity.Use...Grid.Purchase..kBtu.", "Electricity.Use...Grid.Purchase..kWh.")
 L84_2017a$BBL...10.digits <- as.character(L84_2017a$BBL...10.digits)
 
 #combine datasets deleting duplicates and remove import files
@@ -73,7 +73,7 @@ L84_2017 %>% rowwise() %>%  mutate("Total.Thermal (kBTU)" = sum(Fuel.Oil..1.Use.
 
 # Calculate Site EUI to compare to vales in the data frame
 L84_2017 %>% mutate("EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), (`Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`, (Electricity.Use...Grid.Purchase..kBtu. + `Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`)) %>%
-  mutate("Electric EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), 0, Electricity.Use...Grid.Purchase..kBtu./`Self.Reported.Gross.Floor.Area..ft².`), "Thermal EUI" = `Total.Thermal (kBTU)`/`Self.Reported.Gross.Floor.Area..ft².`, "EUI (Thermal/Total)" = `Thermal EUI`/EUI) -> L84_2017
+  mutate("Electric EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), 0, Electricity.Use...Grid.Purchase..kBtu./`Self.Reported.Gross.Floor.Area..ft².`), "Thermal EUI" = `Total.Thermal (kBTU)`/`Self.Reported.Gross.Floor.Area..ft².`, "EUI (Thermal/Total)" = `Thermal EUI`/EUI, "Site/Source EUI" = `Site.EUI..kBtu.ft².` / `Source.EUI..kBtu.ft².`) -> L84_2017
 
 # Remove bad data using following rules: 
   #(1) Rows with 0 buildings. 
@@ -116,7 +116,17 @@ Total.Energy%>%
   mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
   ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
   geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
-  
+
+L84_2017 %>% 
+  ggplot(aes(x = `Site/Source EUI`)) +
+  geom_density()
+
+#Note how EUI ratio is lower for all electric buildings. 
+
+L84_2017 %>%
+  filter(`Total.Thermal (kBTU)`== 0) %>%
+  ggplot(aes(x = `Site/Source EUI`)) +
+  geom_density()
 
 ```
 
