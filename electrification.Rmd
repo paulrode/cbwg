@@ -84,6 +84,8 @@ L84_2017 %>% mutate("EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.)
 L84_2017 %>% filter(`Self.Reported.Gross.Floor.Area..ft².` >= 25000) %>%
   drop_na(`Site.EUI..kBtu.ft².`) %>%
   filter(Property.Name != "65 broadway llc") %>%
+  filter(Property.Name != "North Shore Towers") %>%
+  filter(Property.Name != "Museum of Modern Art") %>%
   filter(Property.Name != "290 Wallabout St") %>%
   filter(Year.Built > 1800) -> L84_2017
 
@@ -121,7 +123,7 @@ L84_2017 %>%
   ggplot(aes(x = `Site/Source EUI`)) +
   geom_density()
 
-#Note how EUI ratio is lower for all electric buildings. 
+1#Note how EUI ratio is lower for all electric buildings. 
 
 L84_2017 %>%
   filter(`Total.Thermal (kBTU)`== 0) %>%
