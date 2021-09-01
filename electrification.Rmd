@@ -1,8 +1,10 @@
 ---
 title: "R Notebook"
 output: Comercial Building Working Group TG2 Scaling Electrificaiton  
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
-
 
 ```{r, echo="FALSE", include=FALSE, message=FALSE}
 
@@ -29,15 +31,14 @@ rm(place, my_packages )
   
 ```
 
+The goal with this data project is to use the LL84 benchmarking to
+identify the thermal potential in each of the building typologies. 1.
+Identify the kBTU's of gas, oil and district steam used (thermal fuel)
+in the commercial stock. 2. Allocate the thermal fuel among building
+typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
+3. Show steam in manhattan as a breakout.
 
-The goal with this data project is to use the LL84 benchmarking to identify the thermal potential in each of the building typologies. 
-1. Identify the kBTU's of gas, oil and district steam used (thermal fuel) in the commercial stock.
-2. Allocate the thermal fuel among building typologies. 
-3. Show ranking of typologies by sf and thermal fule volumn. 
-3. Show steam in manhattan as a breakout. 
-
-
-```{r, echo="FALSE", include=FALSE, message=FALSE}
+```{r echo="FALSE", message=FALSE, include=FALSE}
 
 # Read in LL84 data for 2017, change feature names, and zero out NA's
 
@@ -93,27 +94,45 @@ load( "./data/typetable.RData")
 colnames(type.table) <- c("Primary.Property.Type...Self.Selected", "Property.Type")
 L84_2017 <- left_join(L84_2017, type.table, by = "Primary.Property.Type...Self.Selected")
 L84_2017$Property.Type <- as.factor(L84_2017$Property.Type)
-```
-
-
-What is the total thermal energy as reported through the Benchamrking Law, and how does that compair to Electrical energy used in the same buildings. 
-
-Use the information file. 
-```{r, echo="FALSE", include=FALSE, message=FALSE}
 
 L84_2017 %>%
   filter(Data != "Multi-BBL") %>%
   summarise("NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" = sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE)) -> Total.Energy
+```
 
+What is the total thermal energy as reported through the Benchamrking
+Law, and how does that compair to Electrical energy used in the same
+buildings.
+
+Use the information file.
+
+```{r, echo="FALSE", include=FALSE, message=FALSE}
+
+# Total Energy by Fuel Type
 Total.Energy %>%
   gather(key = "Fuel.Source", value = "kBtu" ) %>%
   arrange(desc(kBtu))%>%
   mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
-  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
-  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source)) +
+  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  ggtitle("Total Energy by Fuel Type")
   ggsave(filename =  "Energy_by_Type.jpeg", device = "jpeg", scale = 1, width = 6, height = 4, bg = "grey")
   
+# Make a box plot showing fule type statics in a box plot
+L84_2017 %>%
+  select(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu., Fuel.Oil..5...6.Use..kBtu., Diesel..2.Use..kBtu., Propane.Use..kBtu., District.Steam.Use..kBtu., Natural.Gas.Use..kBtu., Electricity.Use...Grid.Purchase..kBtu.) %>%
+  gather(key = "Fuel.Source", value = "kBtu") %>%
+  filter(Fuel.Source == "District.Steam.Use..kBtu.") %>%
+  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
+  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
+  geom_boxplot() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  
+L84_2017 %>% select(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu., Fuel.Oil..5...6.Use..kBtu., Diesel..2.Use..kBtu., Propane.Use..kBtu., District.Steam.Use..kBtu., Natural.Gas.Use..kBtu., Electricity.Use...Grid.Purchase..kBtu.) %>%
+  gather(key = "Fuel.Source", value = "kBtu") %>%
+  filter(Fuel.Source == "District.Steam.Use..kBtu.") -> temp
+summary(temp$kBtu)
 
+  
 Total.Energy%>%
   mutate("Total.Thermal.(kBtu)" = `NGas.(kBtu)`+ Oil.No1 + Oil.No2 + `Oil,No4` + `Oil.No5&6`+ `Diesel.(kBtu)`+ `Propane.(kBtu)`+ `Steam.(kBtu)`) %>%
   select(`Total.Thermal.(kBtu)`, `Elect.(kBtu)`) %>%
@@ -127,7 +146,7 @@ L84_2017 %>%
   ggplot(aes(x = `Site/Source EUI`)) +
   geom_density()
 
-1#Note how EUI ratio is lower for all electric buildings. 
+#Note how EUI ratio is lower for all electric buildings. 
 
 L84_2017 %>%
   filter(`Total.Thermal (kBTU)`== 0) %>%
@@ -136,17 +155,13 @@ L84_2017 %>%
 
 ```
 
-
-
-
-
-
 ```{r, echo="FALSE", include=FALSE, message=FALSE}
 #EUI 
 L84_2017 %>% 
   filter(`Site.EUI..kBtu.ft².` < 500) %>%
   ggplot(aes( x = Property.Type, y = EUI, color = Property.Type)) +
-  geom_boxplot()
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 L84_2017 %>% 
   ggplot(aes(x = `EUI (Thermal/Total)`)) + 
@@ -160,7 +175,6 @@ L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
   geom_boxplot()
 
 ```
-
 
 ```{r, echo="FALSE", include=FALSE, message=FALSE}
 
@@ -219,110 +233,76 @@ L84_2017 <- left_join(L84_2017, type.table, by = "Primary.Property.Type...Self.S
 L84_2017$Property.Type <- as.factor(L84_2017$Property.Type)
 ```
 
+\#Box of gas vol L84_2017 %\>% filter(`Site.EUI..kBtu.ft².` \< 500) %\>%
+filter(Natural.Gas.Use..kBtu. \< 10000000) %\>% filter(Property.Type ==
+"Office" \| Property.Type == "Multifamily" ) %\>% ggplot(aes( x =
+Year.Range, y = Natural.Gas.Use..kBtu., color = Property.Type,
+fill=Property.Type)) + geom_boxplot()
 
+\#Box of gas vol L84_2017 %\>% filter(`Site.EUI..kBtu.ft².` \< 500) %\>%
+filter(Property.Type == "Office" \| Property.Type == "Multifamily" )
+%\>% ggplot(aes( x = Year.Range, y = `Electric EUI`,)) + geom_col(color
+= "Red", position = "dodge") + geom_col(aes(x = Year.Range, y =
+`Thermal EUI`), color = "Blue", position = "dodge")
 
+L84_2017 %\>% group_by(Primary.Property.Type...Self.Selected) %\>%
+summarise(GSF = sum(`Self.Reported.Gross.Floor.Area..ft².`)) %\>%
+arrange(desc(GSF), by_group = TRUE) %\>% mutate("%" = 100\*GSF/sum(GSF))
+-\> GSF_Table GSF_Table$GSF <- as.numeric(GSF_Table$GSF)
+GSF_Table$`%` <- as.numeric(GSF_Table$`%`) GSF_Table[] \<-
+lapply(GSF_Table, format, decimal.mark = ",", digits = 0, scientific =
+FALSE, trim = TRUE)
 
-
-#Box of gas vol
-L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  filter(Natural.Gas.Use..kBtu. < 10000000) %>%
-  filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
-  ggplot(aes( x = Year.Range, y = Natural.Gas.Use..kBtu., color = Property.Type, fill=Property.Type)) +
-  geom_boxplot()
-
-
-#Box of gas vol
-L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
-  ggplot(aes( x = Year.Range, y = `Electric EUI`,)) +
-  geom_col(color = "Red", position = "dodge") +
-  geom_col(aes(x = Year.Range, y = `Thermal EUI`), color = "Blue", position = "dodge") 
-
-
-
-L84_2017 %>% 
-  group_by(Primary.Property.Type...Self.Selected) %>%
-  summarise(GSF = sum(`Self.Reported.Gross.Floor.Area..ft².`)) %>%
-  arrange(desc(GSF), by_group = TRUE) %>%
-  mutate("%" = 100*GSF/sum(GSF)) -> GSF_Table
-GSF_Table$GSF <- as.numeric(GSF_Table$GSF)
-GSF_Table$`%` <- as.numeric(GSF_Table$`%`)
-GSF_Table[] <- lapply(GSF_Table, format, decimal.mark = ",", digits = 0, scientific = FALSE, trim = TRUE)
-
-
-L84_2017 %>% 
-  group_by(Primary.Property.Type...Self.Selected) %>%
-  summarise(TThermal.MMBtu = sum(`Total.Thermal (kBTU)`)/1000) %>%
-  arrange(desc(TThermal.MMBtu, by_group = TRUE)) %>%
-  mutate("%" = 100*TThermal.MMBtu/sum(TThermal.MMBtu)) -> TThermal_Table
+L84_2017 %\>% group_by(Primary.Property.Type...Self.Selected) %\>%
+summarise(TThermal.MMBtu = sum(`Total.Thermal (kBTU)`)/1000) %\>%
+arrange(desc(TThermal.MMBtu, by_group = TRUE)) %\>% mutate("%" =
+100\*TThermal.MMBtu/sum(TThermal.MMBtu)) -\> TThermal_Table
 TThermal_Table$TThermal.MMBtu <- as.numeric(TThermal_Table$TThermal.MMBtu)
-TThermal_Table$`%` <- as.numeric(TThermal_Table$`%`)
-TThermal_Table[] <- lapply(TThermal_Table, format, decimal.mark = ",", digits = 0, scientific = FALSE, trim = TRUE)
+TThermal_Table$`%` <- as.numeric(TThermal_Table$`%`) TThermal_Table[]
+\<- lapply(TThermal_Table, format, decimal.mark = ",", digits = 0,
+scientific = FALSE, trim = TRUE)
 
-
-```
-
-
-
-
-
-
-
-
-
-
-L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  ggplot(aes( `Site.EUI..kBtu.ft².`)) +
-  geom_histogram()
+    L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
+      ggplot(aes( `Site.EUI..kBtu.ft².`)) +
+      geom_histogram()
 
 
 
 
 
 
-GSF_bins <- L84_2017 %>%
-  group_by(Catagory, bins) %>%
-  summarise(GSF = sum(GSF), Num.Buildings = n(), 'Thermal (MMBtu)' = sum(total.thermal)/1000, `Electric (MMBtu)` = sum(`Electric (kBtu)`)/1000) %>% mutate(`Thermal (kBTU/GSF)` = `Thermal (MMBtu)`/GSF)
-GSF_bins$`Thermal (MMBtu)` <- format(GSF_bins$`Thermal (MMBtu)`, big.mark = ",", digits = 0, scientific = FALSE)
-GSF_bins$`Electric (MMBtu)` <- format(GSF_bins$`Electric (MMBtu)`, big.mark = ",", digits = 0, scientific = FALSE)
-GSF_bins$`Thermal kBTU/GSF` <- format(GSF_bins$`Thermal MMBTU/GSF`, big.mark = ",", digits = 2, scientific = FALSE)
+    GSF_bins <- L84_2017 %>%
+      group_by(Catagory, bins) %>%
+      summarise(GSF = sum(GSF), Num.Buildings = n(), 'Thermal (MMBtu)' = sum(total.thermal)/1000, `Electric (MMBtu)` = sum(`Electric (kBtu)`)/1000) %>% mutate(`Thermal (kBTU/GSF)` = `Thermal (MMBtu)`/GSF)
+    GSF_bins$`Thermal (MMBtu)` <- format(GSF_bins$`Thermal (MMBtu)`, big.mark = ",", digits = 0, scientific = FALSE)
+    GSF_bins$`Electric (MMBtu)` <- format(GSF_bins$`Electric (MMBtu)`, big.mark = ",", digits = 0, scientific = FALSE)
+    GSF_bins$`Thermal kBTU/GSF` <- format(GSF_bins$`Thermal MMBTU/GSF`, big.mark = ",", digits = 2, scientific = FALSE)
 
-GSF_bins_dates <- L84_2017 %>%
-  group_by(Catagory, bins, Dates) %>%
-  summarise(GSF = sum(GSF), Num.Buildings = n(), 'Thermal (kBtu)' = sum(total.thermal), `Electric (kBtu)` = sum(`Electric (kBtu)`)) 
+    GSF_bins_dates <- L84_2017 %>%
+      group_by(Catagory, bins, Dates) %>%
+      summarise(GSF = sum(GSF), Num.Buildings = n(), 'Thermal (kBtu)' = sum(total.thermal), `Electric (kBtu)` = sum(`Electric (kBtu)`)) 
 
-L84_2017 %>% filter(Catagory != "Multifamily Housing") -> trial1
-  summary()
-
-
-# Remove outliers for gsf NGas and Electric Usage
-take.out <- 10
-L84_2017 %>% arrange(GSF) -> L84_2017
-L84_2017[take.out:(nrow(L84_2017)-take.out),] -> L84_2017
-L84_2017 %>% arrange(`NGas (kBtu)`) -> L84_2017
-remove(take.out)
+    L84_2017 %>% filter(Catagory != "Multifamily Housing") -> trial1
+      summary()
 
 
-GSF_bins_dates %>% filter(Catagory == "Office")
+    # Remove outliers for gsf NGas and Electric Usage
+    take.out <- 10
+    L84_2017 %>% arrange(GSF) -> L84_2017
+    L84_2017[take.out:(nrow(L84_2017)-take.out),] -> L84_2017
+    L84_2017 %>% arrange(`NGas (kBtu)`) -> L84_2017
+    remove(take.out)
 
 
+    GSF_bins_dates %>% filter(Catagory == "Office")
 
+Ge these plots in the report 8/20/2021 CBWG TG7-2 Plot the following
+mmbtu v gsf - points color on fuel type.\
+mmbtu/gsf v year bin - points + color on category. mmbtu/gsf v decade -
+points + color on category. mmbtu/gsf v gsf - points mmbtu/gsf v
+cartagory - points
 
-
-
-```
-
- Ge these plots in the report
- 8/20/2021 CBWG TG7-2
-Plot the following
-mmbtu v gsf - points color on fuel type.  
-mmbtu/gsf v year bin - points + color on category. 
-mmbtu/gsf v decade - points + color on category. 
-mmbtu/gsf v gsf - points
-mmbtu/gsf v cartagory - points
-
-mmbtu/gsf v fuel type. 
-
+mmbtu/gsf v fuel type.
 
 ```{r, echo="FALSE", include=FALSE, message=FALSE}
 
@@ -333,16 +313,6 @@ ggplot(L84_2017, aes(Catagory)) +
 
 
 ```
-
-
-
-
-
-
-
-
-
-
 
 ```{r, echo=FALSE}
 #Before making time series be sure the order is right and make a clean count feature. 
@@ -368,68 +338,6 @@ plot(S_ts)
 
 ```
 
-Model specifications and estimation.
-ETS(tsibble, formulam ...)
-ARIMA(tsibble, formula, ...)
-TSLM(tsibble, formula, ...)
-and many more. 
-
-Model specification with formulas. 
-Exmaple: transformation(y) ~ trend() + season(period="day") + X
-Like the lk() function rules. 
-
-LHS: Responce
-Defines the data's responce variable
-Specificaiton of transformations (with automatic back transformation)
-
-RHS: Specials
-Model specific specia functions
-Exogenous regressors 
-
-
-Plotting temperutere on time and demand on time and stacking to show visually relationships is recomended. 
-
-tsbl_elec <- tsibbledata::vic_elec %>% filter(Date < ymd("2014-03-01"))
-fbl_elec_fit <- tsbl_elec %>%
-  model(ARIMA(Demand ~ WorkDay + Temperature + I(Temperature^2),
-  pdq(1,0,1) + PDQ(1,1,1, period = "day")))
-
-# # A mable: 1 model
-# model
-# <model>
-# 1LM w/ ARIMA(1,0,1)(1,1,1)[48] erros 
-
-
-Extract model information using tidy funcitons using the broom package
-augment(mable, ....)
-tidy(mable, ...)
-glance(mable, ...)
-components(mable, ...)
-
-Intresting plot can be made using these.
-components(fbl_cafe_fit) %>%
-  gather(component, value, level, slope, season) %>%
-  ggplot(aes(x = Month, y = value)) +
-  geom_line() +
-  facet_grid(vrs(component), scales = "free_y")
-  
-
-Forcast future values
-forcast(mable, new_data, h, ...)
-Example: fit_cafe_fc <- fbl_cafe_fit %>% forcast(h=24)
-fbl_cafe_fc %>% autoplot(vic_cafe)
-
-
-Electric Demand example
-tsbl_elec_new <- tsibbledata::elecdemand %>% 
-  filter(index >= ymd("2014-03-01"), index < ymd("2014-03-14"))
-fbl_elec_fc <- fbl_elec_fit %>%
-  forecast(tsbl_elec_new)
-
-fbl_elec_fc %>% autoplot(tsbl_elec)
-
-
-  
 ```{r}
 tsbl_elec <- tsibbledata::vic_elec %>% filter(Date < ymd("2014-03-01")) %>% mutate("WorkDay" = wday(Date) )
 
@@ -451,114 +359,87 @@ view(vic_elec)
 view(tsbl_elec_new)
 ```
 
-
-Accurach evaluation to compare models 
-accuracy(mable, measures, ...)
+Accurach evaluation to compare models accuracy(mable, measures, ...)
 accuracy(fable, new_data, measures, ...)
 
-fbl_cafe_fit %>% accuracy()
+fbl_cafe_fit %\>% accuracy()
 
 Or
 
-fbl_elec_fc %>% accuracy(tsbl_elec_new)
+fbl_elec_fc %\>% accuracy(tsbl_elec_new)
 
+This makes 152 models. fbl_cafe_fit retail_ets \<-
+tsibbledata::ausretail %\> ETS(Turnover)
 
-This makes 152 models. 
-fbl_cafe_fit 
-retail_ets <- tsibbledata::ausretail %>
-  ETS(Turnover)
+Now use
 
+Extract(broom::augment) augment(retail_ets)
 
-Now use 
+Extract(broom::tidy) tidy(retail_ets)
 
-Extract(broom::augment)
-augment(retail_ets) 
+Extract(broom::glance) glance(retail_ets)
 
-Extract(broom::tidy)
-tidy(retail_ets)
+Extract(fable::components) components(retail_ets)
 
-Extract(broom::glance)
-glance(retail_ets)
+Example: components(retail_ets) %\>% filter(Industry == "Cafes,
+restaurants and takeaway food services") %\>% ggplot(aes(x = Month, y =
+level, color = State)) + geom_line()
 
-Extract(fable::components)
-components(retail_ets)
+Forecast retail_fc \<- retail_ets %\>% forecast(h=24)
 
-Example:
-components(retail_ets) %>%
-  filter(Industry == "Cafes, restaurants and takeaway food services") %>%
-  ggplot(aes(x = Month, y = level, color = State)) +
-  geom_line()
-  
+Evaluate retail_ets %\>% accuracy() measures? to check difference in
+accuracy maybe?
 
-Forecast
-retail_fc <- retail_ets %>% forecast(h=24)
-
-Evaluate 
-retail_ets %>% accuracy()
-measures? to check difference in accuracy maybe? 
 ```{r}
 
 ```
 
-Forecasting with Fasster showing electric 
+Forecasting with Fasster showing electric
 
-fasster_fit <- tsbl_elec %>%
-  fasster(log(Demand) ~ WorkDay %S% (trig(48,16) + poly(1)) + Temperture + I(Temperture^2)) 
-  
+fasster_fit \<- tsbl_elec %\>% fasster(log(Demand) \~ WorkDay %S%
+(trig(48,16) + poly(1)) + Temperture + I(Temperture\^2))
+
 using exoginest regressors for workday and temperture.
 
-fasster_fc <- fasster_fit %>% 
-  forecast(tsbl_elec_new) 
-  
-  fasster_fc %>% 
-    autoplot(tsbl_elec)
-    
+fasster_fc \<- fasster_fit %\>% forecast(tsbl_elec_new)
+
+fasster_fc %\>% autoplot(tsbl_elec)
+
 ```{r}
 
 
 ```
 
+Coming Simulate() future paths
 
-Coming Simulate() future paths 
+set.seed(20181108) vic_cafe_sim \<- fbl_cafe_fit %\>% simulate( h = 24,
+times = 5)
 
-set.seed(20181108)
-vic_cafe_sim <- fbl_cafe_fit %>%
-  simulate( h = 24, times = 5)
-  
-  
-vic_cafe %>% 
-  filter(year(Month) >= 2021) %>% 
-  autoplot(Turnover) + 
-  geom_line(aes(y = .sim, group = .rep), alpha = 0.3, data = vic_cafe_sim)
-  
-  
+vic_cafe %\>% filter(year(Month) \>= 2021) %\>% autoplot(Turnover) +
+geom_line(aes(y = .sim, group = .rep), alpha = 0.3, data = vic_cafe_sim)
+
 Feture: interpolate() missing values
 
-tsibbledata::olympic_running 
+tsibbledata::olympic_running
 
 fit a model then interpolate.
 
-olympic_complete <- olympic_running %>% 
-  TSLM(Time ~ trend()) %>%
-  interpolate(olympic_running) 
-  
-  refit() allows a model to be applied to a new dataset
-  stream() allows a model to be extended using new data
-  
-  stream is good when you have a model and get additional time series data you just add it and the modeling is redone. 
-  
-  fasster_stream <- fasster_fit %>% stream(tsbl_elec_new) 
-  
-Decomposition forecasting
-library(tsibblestats)
-cafe_dcmp <- vic_cafe %>% STL(log(Turnover)) 
+olympic_complete \<- olympic_running %\>% TSLM(Time \~ trend()) %\>%
+interpolate(olympic_running)
 
+refit() allows a model to be applied to a new dataset stream() allows a
+model to be extended using new data
 
-Interval and distribution accuracy
-fbl_elec_fc %>% 
-accuracy(
-  new_data = tsbl_elec_new,
-  measures = list(winkler = winkler_score, percentile = perentiale_score)
-  
-  
+stream is good when you have a model and get additional time series data
+you just add it and the modeling is redone.
+
+fasster_stream \<- fasster_fit %\>% stream(tsbl_elec_new)
+
+Decomposition forecasting library(tsibblestats) cafe_dcmp \<- vic_cafe
+%\>% STL(log(Turnover))
+
+Interval and distribution accuracy fbl_elec_fc %\>% accuracy( new_data =
+tsbl_elec_new, measures = list(winkler = winkler_score, percentile =
+perentiale_score)
+
 )
