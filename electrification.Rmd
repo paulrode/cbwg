@@ -214,6 +214,8 @@ L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
   ggplot(aes( x = Year.Range, y = EUI, color = Property.Type, fill=Property.Type)) +
   geom_boxplot()
 
+L84_2017 %>% filter(is.numeric(District.Steam.Use..kBtu.))
+
 ```
 
 ```{r, echo="FALSE", include=FALSE, message=FALSE}
