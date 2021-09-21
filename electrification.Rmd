@@ -16,8 +16,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
- place <- "Home"
-# place <-  "work"
+# place <- "Home"
+ place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
