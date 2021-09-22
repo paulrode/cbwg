@@ -16,8 +16,8 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
-# place <- "Home"
- place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -216,7 +216,8 @@ L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
 
 L84_2017 %>% 
   select(`Self.Reported.Gross.Floor.Area..ft².`, Number.of.Buildings, District.Steam.Use..kBtu.) %>%
-  filter()
+  na.omit() %>% 
+  summarise(Gross.SF = sum(Self.Reported.Gross.Floor.Area..ft².), Buildings = sum(Number.of.Buildings), Steam = sum(District.Steam.Use..kBtu.))
 
 ```
 
