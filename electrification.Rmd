@@ -15,7 +15,7 @@ my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "f
 lapply(my_packages, require, character.only = TRUE)
 
 #Choose one working site:
- place <- "Home"
+# place <- "Home"
 # place <-  "work"
 
 #Set proper working Dir 
