@@ -5,18 +5,18 @@ output:
 
 ---
 
-```{r, echo="FALSE", include=FALSE, message=FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 ###############################################################################
 #                             Set up environment                                #
 ###############################################################################
 
 my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra") 
-lapply(my_packages, require, character.only = TRUE)
+invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
- place <- "Home"
-# place <-  "work"
+# place <- "Home"
+ place <-  "work"
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
@@ -37,7 +37,7 @@ in the commercial stock. 2. Allocate the thermal fuel among building
 typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
 3. Show steam in manhattan as a breakout.
 
-```{r echo="FALSE", message=FALSE, include=FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 # Read in data
 
@@ -97,8 +97,6 @@ L84_b$`3rd Largest Property Use Type - Gross Floor Area (ft²)`<-as.numeric(L84_
 L84_b$`Self.Reported.Gross.Floor.Area..ft².` <- L84_b$`Largest Property Use Type - Gross Floor Area (ft²)` +  L84_b$`2nd Largest Property Use - Gross Floor Area (ft²)` + L84_b$`3rd Largest Property Use Type - Gross Floor Area (ft²)`
                              
 
-
-
 #Add GSF bins to identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
 c <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
 L84_2017$bins <- cut(L84_2017$`Self.Reported.Gross.Floor.Area..ft².`, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = c ) 
@@ -145,7 +143,7 @@ buildings.
 
 Use the information file.
 
-```{r, echo="TRUE", include= "TRUE", message=FALSE, results='markup'}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 # Total Energy by Fuel Type
 Total.Energy %>%
@@ -154,8 +152,20 @@ Total.Energy %>%
   mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
   ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source)) +
   geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-  ggtitle("Total Energy by Fuel Type")
+  ggtitle("Total Energy by Fuel Type") -> TotalEnergy_by_FuelType
   ggsave(filename =  "Energy_by_Type.jpeg", device = "jpeg", scale = 1, width = 6, height = 4, bg = "grey")
+
+  TotalEnergy_by_FuelType
+  
+  
+```
+
+
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
   
 # Make a box plot showing fule type statics in a box plot
 L84_2017 %>%
@@ -194,7 +204,7 @@ L84_2017 %>%
 
 ```
 
-```{r, echo="FALSE", include=FALSE, message=FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 #EUI 
 L84_2017 %>% 
   filter(`Site.EUI..kBtu.ft².` < 500) %>%
