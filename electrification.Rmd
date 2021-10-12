@@ -16,7 +16,11 @@ invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
 # place <- "Home"
+<<<<<<< HEAD
  place <-  "work"
+=======
+# place <-  "work"
+>>>>>>> b596a6ef886e5f4d9932c97abd902e02f60ad363
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
