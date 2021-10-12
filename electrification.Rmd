@@ -37,64 +37,18 @@ in the commercial stock. 2. Allocate the thermal fuel among building
 typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
 3. Show steam in manhattan as a breakout.
 
+
+
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 # Read in data
-
-L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%   
+L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%  rbind( read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names = TRUE, na = "NA"  )) %>%   
   mutate(Data = "2017") %>%
   data.frame() 
+
+
 L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%   
   mutate(Data = "2016")
-
-
-L84_2017 %>%
-  select(Property.Id, 
-         NYC.Building.Identification.Number..BIN., 
-         Address.1..self.reported., Borough, Property.Name, 
-         `Self.Reported.Gross.Floor.Area..ft².`, 
-         Primary.Property.Type...Self.Selected, 
-         Year.Built, 
-         Number.of.Buildings, 
-         `Site.EUI..kBtu.ft².`,
-         `Source.EUI..kBtu.ft².`,
-         Fuel.Oil..1.Use..kBtu., 
-         Fuel.Oil..2.Use..kBtu., 
-         Fuel.Oil..4.Use..kBtu., 
-         Fuel.Oil..5...6.Use..kBtu., 
-         Diesel..2.Use..kBtu.,
-         District.Steam.Use..kBtu.,
-         Natural.Gas.Use..kBtu., 
-         Electricity.Use...Grid.Purchase..kBtu., 
-         Water.Use..All.Water.Sources...kgal., 
-         Data) -> L84_a
-
-L84_2016 %>% 
-  select(`Property Id`, 
-         `NYC Building Identification Number (BIN)`,
-         `Address 1 (self-reported)`, Borough, `Property Name`,
-         `Largest Property Use Type - Gross Floor Area (ft²)`,
-         `2nd Largest Property Use - Gross Floor Area (ft²)`,
-         `3rd Largest Property Use Type - Gross Floor Area (ft²)`,
-         `Primary Property Type - Self Selected`,
-         `Year Built`,
-         `Number of Buildings - Self-reported`,
-         `Site EUI (kBtu/ft²)`,
-         `Source EUI (kBtu/ft²)`,
-         `Fuel Oil #1 Use (kBtu)`,
-         `Fuel Oil #2 Use (kBtu)`,
-         `Fuel Oil #4 Use (kBtu)`,
-         `Fuel Oil #5 & 6 Use (kBtu)`,
-         `Diesel #2 Use (kBtu)`,
-         `District Steam Use (kBtu)`,
-         `Natural Gas Use (kBtu)`,
-         `Electricity Use - Grid Purchase (kBtu)`,
-         `Water Use (All Water Sources) (kgal)`,
-         Data ) -> L84_b
-L84_b$`Largest Property Use Type - Gross Floor Area (ft²)` <- as.numeric(L84_b$`Largest Property Use Type - Gross Floor Area (ft²)`)
-L84_b$`2nd Largest Property Use - Gross Floor Area (ft²)` <- as.numeric(L84_b$`2nd Largest Property Use - Gross Floor Area (ft²)`)
-L84_b$`3rd Largest Property Use Type - Gross Floor Area (ft²)`<-as.numeric(L84_b$`3rd Largest Property Use Type - Gross Floor Area (ft²)`)
-L84_b$`Self.Reported.Gross.Floor.Area..ft².` <- L84_b$`Largest Property Use Type - Gross Floor Area (ft²)` +  L84_b$`2nd Largest Property Use - Gross Floor Area (ft²)` + L84_b$`3rd Largest Property Use Type - Gross Floor Area (ft²)`
                              
 
 #Add GSF bins to identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
@@ -105,8 +59,7 @@ L84_2017$Year.Range <- cut(L84_2017$Year.Built, breaks = c(0, 1942, 1980, 2021),
 remove(c,d) #clean up environment
 
 
-# Add total thermal which is the sum of all thermal fuels. 
-
+# Add total thermal 
 L84_2017 %>% rowwise() %>%  mutate("Total.Thermal (kBTU)" = sum(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu.,  Diesel..2.Use..kBtu. , Propane.Use..kBtu. , District.Steam.Use..kBtu. , District.Hot.Water.Use..kBtu. + District.Chilled.Water.Use..kBtu. , Natural.Gas.Use..kBtu., na.rm = TRUE) ) -> L84_2017
 
 # Calculate Site EUI to compare to vales in the data frame
