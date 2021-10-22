@@ -11,7 +11,7 @@ output:
 #                             Set up environment                                #
 ###############################################################################
 
-my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra", "formattable", "firr", "purr") 
+my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra", "formattable") 
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
