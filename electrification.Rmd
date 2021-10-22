@@ -11,17 +11,13 @@ output:
 #                             Set up environment                                #
 ###############################################################################
 
-my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra", "formattable") 
+my_packages <- c("tidyverse", "lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra", "formattable", "firr", "purr") 
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-<<<<<<< HEAD
-# place <- "Home"
- place <-  "work"
-=======
- place <- "Home"
-#place <-  "work"
->>>>>>> 438cee1150b92d4a96ab9d9d0651fc1b58adc523
+  place <- "Home"
+# place <-  "work"
+
 
 #Set proper working Dir 
 if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
