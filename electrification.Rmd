@@ -45,46 +45,28 @@ typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
 # Read in data
 L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%  rbind( read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names = TRUE, na = "NA"  )) %>%   
   mutate(Data = "2017") %>%
+  select(1:3, 6, 8:9, 11, 14, 16:17, 25:26, 30:31, 33, 37:43, 45:46,48, 49, 51:52, 61 ) %>%
   data.frame() 
 
 
-L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%  rbind( read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names = TRUE, na = "NA"  )) %>%   
-  mutate(Data = "2016") %>%
-  data.frame() 
-L84_2016$`Largest.Property.Use.Type...Gross.Floor.Area..ft².` <- as.numeric(L84_2016$`Largest.Property.Use.Type...Gross.Floor.Area..ft².`)
-L84_2016$Year.Built <- as.numeric(L84_2016$Year.Built)
-                             
-
-#Add GSF bins to identify where bulk of sf is by GSF ranges 50,000 up to over 500k.
+# Add Size and age bins
 Building_GSF_Ranges <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
 L84_2017$bins <- cut(L84_2017$`Self.Reported.Gross.Floor.Area..ft².`, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = Building_GSF_Ranges ) 
 Building_Ages <- c("pre 1942", "1942 to 1980", "1980 to 2000")
 L84_2017$Year.Range <- cut(L84_2017$Year.Built, breaks = c(0, 1942, 1980, 2021),dig.lab = 4, labels = Building_Ages)
-L84_2016$bins <- cut(L84_2016$`Largest.Property.Use.Type...Gross.Floor.Area..ft².`, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = Building_GSF_Ranges ) 
-L84_2016$Year.Range <- cut(L84_2016$Year.Built, breaks = c(0, 1942, 1980, 2021),dig.lab = 4, labels = Building_Ages)
 remove(Building_Ages, Building_GSF_Ranges) #clean up environment
 
 
 # Add total thermal 
-L84_2017 %>% rowwise() %>%  mutate("Total.Thermal (kBTU)" = sum(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu.,  Diesel..2.Use..kBtu. , Propane.Use..kBtu. , District.Steam.Use..kBtu. , District.Hot.Water.Use..kBtu. + District.Chilled.Water.Use..kBtu. , Natural.Gas.Use..kBtu., na.rm = TRUE) ) -> L84_2017
+L84_2017 %>% rowwise() %>%  mutate("Total.Thermal (kBTU)" = sum(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu.,  Diesel..2.Use..kBtu. , Propane.Use..kBtu. , District.Steam.Use..kBtu. + District.Chilled.Water.Use..kBtu. , Natural.Gas.Use..kBtu., na.rm = TRUE) ) -> L84_2017
 
-# Calculate Site EUI to compare to vales in the data frame
-L84_2017 %>% mutate("EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), (`Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`, (Electricity.Use...Grid.Purchase..kBtu. + `Total.Thermal (kBTU)`)/ `Self.Reported.Gross.Floor.Area..ft².`)) %>%
-  mutate("Electric EUI" = ifelse(is.na(Electricity.Use...Grid.Purchase..kBtu.), 0, Electricity.Use...Grid.Purchase..kBtu./`Self.Reported.Gross.Floor.Area..ft².`), "Thermal EUI" = `Total.Thermal (kBTU)`/`Self.Reported.Gross.Floor.Area..ft².`, "EUI (Thermal/Total)" = `Thermal EUI`/EUI, "Site/Source EUI" = `Site.EUI..kBtu.ft².` / `Source.EUI..kBtu.ft².`) -> L84_2017
+# Remove bad data - outliers
+L84_2017_A <- L84_2017
+outliers <- boxplot(L84_2017$District.Steam.Use..kBtu., plot = FALSE)$out
+L84_2017_A <- L84_2017_A[-which(L84_2017_A$District.Steam.Use..kBtu. %in% outliers), ]
+boxplot(L84_2017$District.Steam.Use..kBtu.)
+boxplot(L84_2017_A$District.Steam.Use..kBtu.)
 
-# Remove bad data using following rules: 
-  #(1) Rows with 0 buildings. 
-  #(2) remove rows with EUI = 0 
-  #(3) remove bad 65 Broadway Manhattan and 290 Wallabout Street Brooklyn - bad data 
-  #(4) remove buildings with year built < 1800
-  
-L84_2017 %>% filter(`Self.Reported.Gross.Floor.Area..ft².` >= 25000) %>%
-  drop_na(`Site.EUI..kBtu.ft².`) %>%
-  filter(Property.Name != "65 broadway llc") %>%
-  filter(Property.Name != "North Shore Towers") %>%
-  filter(Property.Name != "Museum of Modern Art") %>%
-  filter(Property.Name != "290 Wallabout St") %>%
-  filter(Year.Built > 1800) -> L84_2017
 
 load( "./data/typetable.RData")
 colnames(type.table) <- c("Primary.Property.Type...Self.Selected", "Property.Type")
@@ -94,6 +76,9 @@ L84_2017$Property.Type <- as.factor(L84_2017$Property.Type)
 L84_2017 %>%
   filter(Data != "Multi-BBL") %>%
   summarise("NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" = sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE)) -> Total.Energy
+
+
+
 ```
 
 What is the total thermal energy as reported through the Benchamrking
