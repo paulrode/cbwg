@@ -15,7 +15,7 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-#  place <- "Home"
+#place <- "Home"
  place <-  "work"
 
 
@@ -26,6 +26,9 @@ if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
 # Check for data directory and if one is not present then make it
 if (!file.exists("data")) {
   dir.create("data")}
+  
+# Set up the not in operator 
+  `%!in%` <- Negate(`%in%`)
 
 rm(place, my_packages )
   
@@ -83,8 +86,8 @@ Types <- unique(L84_2017_S_G$Primary.Property.Type...Self.Selected, incomparable
 Types <- Types[1]
 L84_2017_S_G %>% filter(Primary.Property.Type...Self.Selected %in% Types ) -> L84_2017_S_G
 
-L84_2017_S_G %>%
-  summarise("NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" = sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE)) -> Total.Energy
+
+L84_2017_S_G %>% summarise("NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" = sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE)) -> Total.Energy
 
 
 
@@ -102,7 +105,7 @@ Use the information file.
 Total.Energy %>%
   gather(key = "Fuel.Source", value = "kBtu" ) %>%
   arrange(desc(kBtu))%>%
-  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
+  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>%  
   ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source)) +
   geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
   ggtitle("Total Energy by Fuel Type") -> TotalEnergy_by_FuelType
