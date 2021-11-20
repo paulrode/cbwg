@@ -83,7 +83,10 @@ L84_2017_S_G <- L84_2017_S_G[-which(L84_2017_S_G$Natural.Gas.Use..kBtu. %in% out
 remove(outliers)
 
 Types <- unique(L84_2017_S_G$Primary.Property.Type...Self.Selected, incomparables = FALSE)
-Types <- Types[1]
+
+
+
+Types <- Types[5]
 L84_2017_S_G %>% filter(Primary.Property.Type...Self.Selected %in% Types ) -> L84_2017_S_G
 
 
