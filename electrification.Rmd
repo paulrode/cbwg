@@ -45,13 +45,17 @@ typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-# Read in data
-L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA"  ) %>%  
-  rbind( read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names = TRUE, na = "NA"  )) %>%   
+# Read in data and wrangel 
+L84_2017InM <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics")
+
+L84_2017Multi <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names = TRUE, na = "NA") %>% mutate(Sheet = "Multi-BBL")
+
+L84_2017 <- rbind(L84_2017InM, L84_2017Multi ) %>%   
   mutate(Data = "2017") %>%
-  select(1:3, 6,9, 14, 16:17, 25:26, 30:31, 33, 37:43, 45:46,48, 61 ) %>%
+  select(1:3, 6,9, 14, 16:17, 25:26, 30:31, 33, 37:43, 45:46,48, 61:62 ) %>%
   data.frame() 
 
+remove(L84_2017InM, L84_2017Multi)
 
 # Add Size and age bins
 Building_GSF_Ranges <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
@@ -62,17 +66,15 @@ remove(Building_Ages, Building_GSF_Ranges) #clean up environment
 
 
 # Add total thermal 
+L84_2017[is.na(L84_2017)] <- 0 
 L84_2017 %>% 
-  rowwise() %>%  
-  mutate("Total.Thermal.(kBTU)" = sum(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu. , Fuel.Oil..5...6.Use..kBtu.,  Diesel..2.Use..kBtu. , Propane.Use..kBtu. , District.Steam.Use..kBtu. + Natural.Gas.Use..kBtu., na.rm = TRUE)) -> L84_2017
+    mutate("Total.Thermal.(kBTU)" = (Fuel.Oil..1.Use..kBtu. + Fuel.Oil..2.Use..kBtu.+    Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.+  Diesel..2.Use..kBtu. + Propane.Use..kBtu. + District.Steam.Use..kBtu. + Natural.Gas.Use..kBtu.)) -> L84_2017
 
 
 # Add district chilled water to electric 
-L84_2017$Electricity.Use...Grid.Purchase..kBtu.[is.na(L84_2017)] = 0
 L84_2017 %>% 
-mutate( Electricity.kBtu. = Electricity.Use...Grid.Purchase..kBtu. + District.Chilled.Water.Use..kBtu.) -> L84_2017
-
-#select(-District.Chilled.Water.Use..kBtu., -Electricity.Use...Grid.Purchase..kBtu.) -> L84_2017
+mutate( Electricity.kBtu. = Electricity.Use...Grid.Purchase..kBtu. + District.Chilled.Water.Use..kBtu.) %>%
+  select(-21) -> L84_2017
 
 # Remove bad data - steam outliers  
 L84_2017_S <- L84_2017
@@ -93,12 +95,7 @@ remove(outliers, L84_2017_S)
 
 
 L84_2017_S_G %>% group_by(Primary.Property.Type...Self.Selected) %>%
-  summarise(Electric = sum(Electricity.Use...Grid.Purchase..kBtu., rm.na = TRUE)) -> L84_2017_S_G
-
-  
-  
-  
-    summarise("GSF" = `Self.Reported.Gross.Floor.Area..ft².`,  "NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" =       sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE))  -> Total_Energy_by_Prop
+  summarise("GSF" = sum(`Self.Reported.Gross.Floor.Area..ft².`),  "NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil.No1" = sum(Fuel.Oil..1.Use..kBtu., na.rm = TRUE), "Oil.No2" =       sum(Fuel.Oil..2.Use..kBtu., na.rm = TRUE), "Oil,No4" = sum(Fuel.Oil..4.Use..kBtu., na.rm = TRUE), "Oil.No5&6" = sum(Fuel.Oil..5...6.Use..kBtu., na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE))  -> Total_Energy_by_Prop
 
 
 
