@@ -110,7 +110,7 @@ Use the information file.
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 # Total Energy by Fuel Type
-Total.Energy %>%
+Total_Energy_by_Prop %>%
   gather(key = "Fuel.Source", value = "kBtu" ) %>%
   arrange(desc(kBtu))%>%
   mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>%  
