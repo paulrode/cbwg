@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-place <- "Home"
-#place <-  "work"
+#place <- "Home"
+place <-  "work"
 
 
 #Set proper working Dir 
@@ -87,9 +87,14 @@ outliers <- boxplot(L84_2017_S$District.Steam.Use..kBtu., plot = FALSE)$out
 L84_2017_S <- L84_2017_S[-which(L84_2017_S$District.Steam.Use..kBtu. %in% outliers), ]
 remove(outliers)
 
-
-
+filter(L84_2017_S, District.Steam.Use..kBtu. < 1e+08 & District.Steam.Use..kBtu. > 0) ->L84_2017_S
+mean(L84_2017_S$District.Steam.Use..kBtu.)
 boxplot(L84_2017_S$District.Steam.Use..kBtu.)
+
+L84_2017_S %>% 
+  ggplot(aes(x = `District.Steam.Use..kBtu.`)) + 
+  geom_density() +
+  geom_vline(xintercept=mean(L84_2017$`District.Steam.Use..kBtu.` , na.rm = TRUE) ,color="blue", linetype="dashed", size=1)
 
 # Remove bad data - gas outliers  
 L84_2017_S_G <- L84_2017_S
