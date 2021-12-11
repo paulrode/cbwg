@@ -59,44 +59,23 @@ L84_2017InM <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Informatio
 L84_2017InM -> L84_2017
 L84_2017 %>%   
   mutate(Data = "2017") %>%
-  select(1:3, 6,9, 14, 16:17, 25:26, 30:31, 33, 37:43, 45:46,48, 61:62 ) %>%
+  select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `Self-Reported Gross Floor Area (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `District Hot Water Use (kBtu)`, `District Chilled Water Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Sheet, Data ) %>%
   data.frame() -> L84_2017
-
-
-
-
 
 # Add Size and age bins
 Building_GSF_Ranges <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
-L84_2017$bins <- cut(L84_2017$`Self.Reported.Gross.Floor.Area..ft².`, breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = Building_GSF_Ranges ) 
+L84_2017$bins <- cut(L84_2017$`Self.Reported.Gross.Floor.Area..ft².` , breaks = c(0,50000, 100000, 500000, 1000000, 9000000), dig.lab = 7 , ordered_result = TRUE, labels = Building_GSF_Ranges ) 
 Building_Ages <- c("pre 1942", "1942 to 1980", "1980 to 2000")
 L84_2017$Year.Range <- cut(L84_2017$Year.Built, breaks = c(0, 1942, 1980, 2021),dig.lab = 4, labels = Building_Ages)
 remove(Building_Ages, Building_GSF_Ranges) #clean up environment
 
-
 # Add total thermal 
 L84_2017[is.na(L84_2017)] <- 0 
 L84_2017 %>% 
-    mutate("Total.Thermal.(kBTU)" = (Fuel.Oil..1.Use..kBtu. + Fuel.Oil..2.Use..kBtu.+    Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.+  Diesel..2.Use..kBtu. + Propane.Use..kBtu. + District.Steam.Use..kBtu. + Natural.Gas.Use..kBtu.)) -> L84_2017
+  mutate(`Total Thermal (kBtu)` = (`Fuel.Oil..1.Use..kBtu.`+ `Fuel.Oil..2.Use..kBtu.`+ `Fuel.Oil..4.Use..kBtu.`+ `Fuel.Oil..5...6.Use..kBtu.`+ `Diesel..2.Use..kBtu.` + `Natural.Gas.Use..kBtu.` )) -> L84_2017
 
-# Add Oil grades together
-L84_2017 %>% 
-  mutate(Oil = Fuel.Oil..1.Use..kBtu. + Fuel.Oil..2.Use..kBtu. + Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.) %>%
-  select(-14,-15,-16,-17) -> L84_2017
-
-# Add district chilled water to electric 
-L84_2017 %>% 
-mutate( Electricity.kBtu. = Electricity.Use...Grid.Purchase..kBtu. + District.Chilled.Water.Use..kBtu.) %>%
-  select(-17) -> L84_2017
-
-L84_2017 %>% 
-  filter(Primary.Property.Type...Self.Selected == "Office") %>%
-  filter(Sheet == "Information and Metrics") %>%
-  filter( Property.Id != 5820492)  ->L84_2017_Office
-
-
-
-
+L84_2017 %>%
+  filter(Primary.Property.Type...Self.Selected == "Office") -> L84_2017.Office
 
 
 
@@ -128,7 +107,7 @@ remove(outliers, L84_2017_S)
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 
-L84_2017_Office %>% group_by(Primary.Property.Type...Self.Selected) %>%
+L84_2017.Office %>% group_by(Primary.Property.Type...Self.Selected) %>%
   summarise("GSF" = sum(`Self.Reported.Gross.Floor.Area..ft².`),  "NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil" = sum(Oil , na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE))  -> Total_Energy_by_Prop
 
 
