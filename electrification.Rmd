@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-#place <- "Home"
-place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 
 #Set proper working Dir 
@@ -41,26 +41,25 @@ in the commercial stock. 2. Allocate the thermal fuel among building
 typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
 3. Show steam in manhattan as a breakout.
 
+Data wranging actions taken
+1. eliminated duplicates.
+2. Deleted outliers using a simple strategy of deteating the top ten and bottom ten buildings by steam consumption.  See 65 Broadway for why this is necessary, the steam consumption value was orders of magnitude higher then possible. 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Read in data and wrange
-L84_2017InM <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics")
-
-#L84_2017Multi <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names #= TRUE, na = "NA") %>% mutate(Sheet = "Multi-BBL")
-
-#L84_2017 <- rbind(L84_2017InM, L84_2017Multi ) %>%   
-#  mutate(Data = "2017") %>%
-#  select(1:3, 6,9, 14, 16:17, 25:26, 30:31, 33, 37:43, 45:46,48, 61:62 ) %>%
-#  data.frame() 
-# remove(L84_2017InM, L84_2017Multi)
-
-L84_2017InM -> L84_2017
-L84_2017 %>%   
+L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
   mutate(Data = "2017") %>%
   select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `Self-Reported Gross Floor Area (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `District Hot Water Use (kBtu)`, `District Chilled Water Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Sheet, Data ) %>%
   data.frame() -> L84_2017
+
+L84_2017 %>%
+  mutate( "Fuel.Oil..kBtu" = Fuel.Oil..2.Use..kBtu. + Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.) -> L84_2017
+
+
+L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
+  mutate(Data = "2016") %>% data.frame()
 
 # Add Size and age bins
 Building_GSF_Ranges <- c("0 to 50,000", "50,000 to 100,000", "100,000 to 500,000", "500,000 to 1,000,000", "over 1,000,000")
@@ -70,21 +69,72 @@ L84_2017$Year.Range <- cut(L84_2017$Year.Built, breaks = c(0, 1942, 1980, 2021),
 remove(Building_Ages, Building_GSF_Ranges) #clean up environment
 
 # Add total thermal 
-L84_2017[is.na(L84_2017)] <- 0 
+#L84_2017[is.na(L84_2017)] <- 0 
 L84_2017 %>% 
   mutate(`Total Thermal (kBtu)` = (`Fuel.Oil..1.Use..kBtu.`+ `Fuel.Oil..2.Use..kBtu.`+ `Fuel.Oil..4.Use..kBtu.`+ `Fuel.Oil..5...6.Use..kBtu.`+ `Diesel..2.Use..kBtu.` + `Natural.Gas.Use..kBtu.` )) -> L84_2017
+
+# Add Oil grades together
+L84_2017 %>% 
+  mutate(Oil = Fuel.Oil..1.Use..kBtu. + Fuel.Oil..2.Use..kBtu. + Fuel.Oil..4.Use..kBtu. + Fuel.Oil..5...6.Use..kBtu.) %>%
+  select(-14,-15,-16,-17) -> L84_2017
+
+# Add district chilled water to electric 
+L84_2017 %>% 
+mutate( Electricity.kBtu. = Electricity.Use...Grid.Purchase..kBtu. + District.Chilled.Water.Use..kBtu.) %>%
+  select(-17) -> L84_2017
+
+
+#L84_2017Multi <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Multi-BBL", col_names #= TRUE, na = "NA") %>% mutate(Sheet = "Multi-BBL")
+
+#L84_2017 <- rbind(L84_2017InM, L84_2017Multi ) %>%   
+#  mutate(Data = "2017") %>%
+#  select(1:3, 6,9, 14, 16:17, 25:26, 30:31, 33, 37:43, 45:46,48, 61:62 ) %>%
+#  data.frame() 
+# remove(L84_2017InM, L84_2017Multi)
+
+L84_2017 %>%
+  distinct(Property.Id, .keep_all = TRUE) %>% 
+  filter(Primary.Property.Type...Self.Selected == "Office") %>%
+  filter(Sheet == "Information and Metrics") %>%
+  filter( Property.Id != 5820492)  ->L84_2017
+
+
+####################################
+
 
 L84_2017 %>%
   filter(Primary.Property.Type...Self.Selected == "Office") -> L84_2017.Office
 
 
+L84_2017 %>% 
+  filter(District.Steam.Use..kBtu. != "NA") %>%
+  select(Property.Name, District.Steam.Use..kBtu.) %>%
+  arrange(District.Steam.Use..kBtu.) %>%  
+  tail(-10) %>%
+  ggplot(aes(x = District.Steam.Use..kBtu.)) +
+  geom_density() 
 
+
+L84_2017 %>% 
+  filter(District.Steam.Use..kBtu. != "NA") %>%
+  select(Property.Name, District.Steam.Use..kBtu.) %>%
+  arrange(District.Steam.Use..kBtu.) %>%  
+  tail(-10) %>% 
+  ggplot(aes(y = District.Steam.Use..kBtu.)) +
+  geom_boxplot()
+
+L84_2017 %>% 
+  filter(District.Steam.Use..kBtu. != "NA") %>%
+  select(Property.Name, District.Steam.Use..kBtu.) %>%
+  arrange(District.Steam.Use..kBtu.) %>%  
+  tail(-10) -> L84_2017_S
+
+#####################################
 
 # Remove bad data - steam outliers and 65 Broadway which skewes the data even with outliers taken out 
 L84_2017_S <- L84_2017
-filter(L84_2017_S, Property.Id != 5820492) ->L84_2017_S
-outliers <- boxplot(L84_2017_S$District.Steam.Use..kBtu., plot = FALSE)$out
-L84_2017_S <- L84_2017_S[-which(L84_2017_S$District.Steam.Use..kBtu. %in% outliers), ]
+outliers <- boxplot(L84_2017$District.Steam.Use..kBtu., plot = FALSE)$out
+L84_2017 <- L84_2017[-which(L84_2017_S$District.Steam.Use..kBtu. %in% outliers), ]
 remove(outliers)
 
 
@@ -107,7 +157,10 @@ remove(outliers, L84_2017_S)
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 
+
 L84_2017.Office %>% group_by(Primary.Property.Type...Self.Selected) %>%
+
+L84_2017 %>% group_by(Primary.Property.Type...Self.Selected) %>%
   summarise("GSF" = sum(`Self.Reported.Gross.Floor.Area..ft².`),  "NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil" = sum(Oil , na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE))  -> Total_Energy_by_Prop
 
 
