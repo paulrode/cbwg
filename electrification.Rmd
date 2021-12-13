@@ -65,8 +65,12 @@ colnames(L84_2016) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF",
 
 colnames(L84_2017) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data")
 
-rbind(L84_2016,L84_2017) -> L84 
+rbind(L84_2016,L84_2017) -> L84
+L84[is.na(L84)] <- 0 
 
+L84 %>%
+  mutate(Oil = Oil1 + Oil2 + Oil4 + Oil56) -> L84
+  select(-Oil1, -Oil2, -Oil4, -Oil56) -> L84
 
 
 L84_2017 %>%
