@@ -48,7 +48,7 @@ Data wranging actions taken
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-# Read in data and wrange
+# Read in data and wrangleing 
 L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
   mutate(Data = "2017") %>%
   select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `Self-Reported Gross Floor Area (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Sheet, Data ) %>%
@@ -96,62 +96,16 @@ L84 %>%
 
 
 
-L84_2017 %>% 
-  filter(District.Steam.Use..kBtu. != "NA") %>%
-  select(Property.Name, District.Steam.Use..kBtu.) %>%
-  arrange(District.Steam.Use..kBtu.) %>%  
-  tail(-10) %>%
-  ggplot(aes(x = District.Steam.Use..kBtu.)) +
-  geom_density() 
-
-
-L84_2017 %>% 
-  filter(District.Steam.Use..kBtu. != "NA") %>%
-  select(Property.Name, District.Steam.Use..kBtu.) %>%
-  arrange(District.Steam.Use..kBtu.) %>%  
-  tail(-10) %>% 
-  ggplot(aes(y = District.Steam.Use..kBtu.)) +
-  geom_boxplot()
-
-L84_2017 %>% 
-  filter(District.Steam.Use..kBtu. != "NA") %>%
-  select(Property.Name, District.Steam.Use..kBtu.) %>%
-  arrange(District.Steam.Use..kBtu.) %>%  
-  tail(-10) -> L84_2017_S
-
 #####################################
 
-# Remove bad data - steam outliers and 65 Broadway which skewes the data even with outliers taken out 
-L84_2017_S <- L84_2017
-outliers <- boxplot(L84_2017$District.Steam.Use..kBtu., plot = FALSE)$out
-L84_2017 <- L84_2017[-which(L84_2017_S$District.Steam.Use..kBtu. %in% outliers), ]
-remove(outliers)
-
-
-
-
-L84_2017_S %>% 
-  ggplot(aes(x = `District.Steam.Use..kBtu.`)) + 
-  geom_density() +
-  geom_vline(xintercept=mean(L84_2017$`District.Steam.Use..kBtu.` , na.rm = TRUE) ,color="blue", linetype="dashed", size=1)
-
-# Remove bad data - gas outliers  
-L84_2017_S_G <- L84_2017_S
-outliers <- boxplot(L84_2017_S_G$Natural.Gas.Use..kBtu. , plot = FALSE)$out
-L84_2017_S_G <- L84_2017_S_G[-which(L84_2017_S_G$Natural.Gas.Use..kBtu. %in% outliers), ]
-remove(outliers, L84_2017_S)
 
 ```
-
+The latest publicly available  file is for the 2017 calender year. There are `r nrow( filter(L84, Data == "2017") )` entries for `r L84 %>% filter(Data == "2017") %>% select(No.Buildings) %>% sum()` in `r nrow(unique(L84 %>% filter(Data == "2017") %>% select(Type)))`  categories identified as primary use by the owners. 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
 
 
-L84_2017.Office %>% group_by(Primary.Property.Type...Self.Selected) %>%
-
-L84_2017 %>% group_by(Primary.Property.Type...Self.Selected) %>%
-  summarise("GSF" = sum(`Self.Reported.Gross.Floor.Area..ft².`),  "NGas.(kBtu)" = sum(Natural.Gas.Use..kBtu. , na.rm = TRUE ), "Oil" = sum(Oil , na.rm = TRUE), "Diesel.(kBtu)" = sum(Diesel..2.Use..kBtu., na.rm = TRUE), "Propane.(kBtu)" = sum(Propane.Use..kBtu., na.rm = TRUE), "Steam.(kBtu)" = sum(District.Steam.Use..kBtu., na.rm = TRUE), "Elect.(kBtu)" = sum(Electricity.Use...Grid.Purchase..kBtu., na.rm = TRUE))  -> Total_Energy_by_Prop
 
 
 
@@ -165,27 +119,7 @@ Use the information file.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
-# Total Energy by Fuel Type
-Total_Energy_by_Prop %>%
 
-  gather(key = "Fuel.Source", value = "kBtu", -Primary.Property.Type...Self.Selected, -GSF) %>%
-  arrange(desc(kBtu))%>%
-  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>%  
-  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source)) +
-  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-  ggtitle("Total Energy by Fuel Type") -> TotalEnergy_by_FuelType
-  ggsave(filename =  "Energy_by_Type.jpeg", device = "jpeg", scale = 1, width = 6, height = 4, bg = "grey")
-
-  TotalEnergy_by_FuelType
-  
-  # Total Energy by Fuel Type and Property
-Total.Energy %>%
-  ggplot(aes(x = Primary.Property.Type...Self.Selected , y=kBtu, fill = Fuel.Source)) +
-  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-  ggtitle("Total Energy by Fuel Type by Property") ->  TotalEnergy_by_Fuel_by_Prop
-  ggsave(filename =  "Energy_by_Type_by_Prop.jpeg", device = "jpeg", scale = 1, width = 6, height = 4, bg = "grey")
-
-  TotalEnergy_by_Fuel_by_Prop
   
   
 ```
@@ -198,63 +132,19 @@ Total.Energy %>%
 
   
 # Make a box plot showing fule type statics in a box plot
-L84_2017_S_G %>%
-  gather(key = "Fuel.Source", value = "kBtu") %>%
-  filter(Fuel.Source == "District.Steam.Use..kBtu.") %>%
-  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
-  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
-  geom_boxplot() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
-  
-L84_2017 %>% select(Fuel.Oil..1.Use..kBtu., Fuel.Oil..2.Use..kBtu., Fuel.Oil..4.Use..kBtu., Fuel.Oil..5...6.Use..kBtu., Diesel..2.Use..kBtu., Propane.Use..kBtu., District.Steam.Use..kBtu., Natural.Gas.Use..kBtu., Electricity.Use...Grid.Purchase..kBtu.) %>%
-  gather(key = "Fuel.Source", value = "kBtu") %>%
-  filter(Fuel.Source == "District.Steam.Use..kBtu.") -> temp
-summary(temp$kBtu)
-
-  
-Total.Energy%>%
-  mutate("Total.Thermal.(kBtu)" = `NGas.(kBtu)`+ Oil.No1 + Oil.No2 + `Oil,No4` + `Oil.No5&6`+ `Diesel.(kBtu)`+ `Propane.(kBtu)`+ `Steam.(kBtu)`) %>%
-  select(`Total.Thermal.(kBtu)`, `Elect.(kBtu)`) %>%
-  gather(key = "Fuel.Source", value = "kBtu" ) %>% 
-  arrange(desc(kBtu))%>%
-  mutate(Fuel.Source = factor(Fuel.Source, levels = unique(Fuel.Source))) %>% 
-  ggplot(aes(x = Fuel.Source, y=kBtu, fill = Fuel.Source) ) +
-  geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
-L84_2017 %>% 
-  ggplot(aes(x = `Site/Source EUI`)) +
-  geom_density()
 
 #Note how EUI ratio is lower for all electric buildings. 
 
-L84_2017 %>%
-  filter(`Total.Thermal (kBTU)`== 0) %>%
-  ggplot(aes(x = `Site/Source EUI`)) +
-  geom_density()
+
 
 ```
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 #EUI 
-L84_2017 %>% 
-  filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  ggplot(aes( x = Property.Type, y = EUI, color = Property.Type)) +
-  geom_boxplot()+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
-L84_2017 %>% 
-  ggplot(aes(x = `EUI (Thermal/Total)`)) + 
-  geom_density() +
-  geom_vline(xintercept=mean(L84_2017$`EUI (Thermal/Total)` , na.rm = TRUE) ,color="blue", linetype="dashed", size=1)
 
 #EUI by type and range
-L84_2017 %>% filter(`Site.EUI..kBtu.ft².` < 500) %>%
-  filter(Property.Type == "Office" | Property.Type == "Multifamily" ) %>%
-  ggplot(aes( x = Year.Range, y = EUI, color = Property.Type, fill=Property.Type)) +
-  geom_boxplot()
 
-L84_2017 %>% 
-  select(`Self.Reported.Gross.Floor.Area..ft².`, Number.of.Buildings, District.Steam.Use..kBtu.) %>%
-  na.omit() 
 #  summarise(Gross.SF = sum(Self.Reported.Gross.Floor.Area..ft².), Buildings = 
 # sum(Number.of.Buildings), Steam = sum(District.Steam.Use..kBtu.))
 
