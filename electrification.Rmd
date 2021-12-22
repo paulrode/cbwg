@@ -92,6 +92,7 @@ remove(Building_Ages, GSF_Ranges, i, tonum ) #clean up environment
 L84 %>%
   group_by(Data, Type) %>%
   summarise( GSF = sum(GSF)) -> Type_tables
+ Type_tables %>% group_by(Data) %>% summarise(Type = n())
 
 
 
