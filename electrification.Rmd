@@ -54,6 +54,9 @@ L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information a
   select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `Self-Reported Gross Floor Area (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Sheet, Data ) %>%
   data.frame() -> L84_2017
 
+colnames(L84_2017) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data")
+
+
 
 L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", 
             col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
@@ -63,7 +66,18 @@ L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information a
 
 colnames(L84_2016) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data")
 
-colnames(L84_2017) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data")
+# WORKING HERE #
+
+
+L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", 
+            col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
+            mutate(Data = "2015") %>%
+  select(`Parent Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1 (self-reported)`, `Postal Code`, Borough, `DOF Gross Floor Area`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings - Self-reported`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Sheet, Data ) %>%
+  data.frame() -> L84_2015
+
+colnames(L84_2015) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data")
+
+# working above #
 
 rbind(L84_2016,L84_2017) -> L84
 L84[is.na(L84)] <- 0 
@@ -92,7 +106,7 @@ remove(Building_Ages, GSF_Ranges, i, tonum ) #clean up environment
 L84 %>%
   group_by(Data, Type) %>%
   summarise( GSF = sum(GSF)) -> Type_tables
- Type_tables %>% group_by(Data) %>% summarise(Type = n())
+ Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Footage" = sum(GSF))
 
 
 
