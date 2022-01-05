@@ -115,20 +115,18 @@ remove(Building_Ages, GSF_Ranges, i, tonum ) #clean up environment
 L84 %>%
   group_by(Data, Type) %>%
   summarise( GSF = sum(GSF), Buildings = sum(No.Buildings)) -> Type_tables
- Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Number of Buildings" = sum(Buildings), "Footage" = sum(GSF))
+ Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table1
+
+kable(table1, col.names = c("Year", "Property Use Types", "Buildings", "SqFt"), align = "cccc", caption = "Table 1 - Datasets property types quantities and areas") -> Table1
 
 
-
-
-#####################################
+################################################################################
 
 
 ```
 The latest publicly available  file is for the 2017 calender year. There are `r nrow( filter(L84, Data == "2017") )` entries for `r L84 %>% filter(Data == "2017") %>% select(No.Buildings) %>% sum()` in `r nrow(unique(L84 %>% filter(Data == "2017") %>% select(Type)))`  categories identified as primary use by the owners. 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
-
-
 
 
 
@@ -142,9 +140,17 @@ buildings.
 Use the information file.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
+#Lets just look at Types that are "Office"
+L84 %>% filter(Type == "Office") -> L84_office
 
+L84_office %>%
+  group_by(Data, Type) %>%
+  summarise( GSF = sum(GSF), Buildings = sum(No.Buildings)) -> Type_tables
+ Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table1
 
-  
+kable(table1, col.names = c("Year", "Property Use Types", "Buildings", "SqFt"), align = "cccc", caption = "Table 1 - Datasets property types quantities and areas") -> Table1
+
+Table1
   
 ```
 
