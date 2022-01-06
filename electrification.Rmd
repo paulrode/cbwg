@@ -11,7 +11,7 @@ output:
 #                             Set up environment                                #
 ###############################################################################
 
-my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidytext","lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kablExtra", "formattable") 
+my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidytext","lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kableExtra", "formattable") 
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
@@ -117,66 +117,43 @@ L84 %>%
   summarise( GSF = sum(GSF), Buildings = sum(No.Buildings)) -> Type_tables
  Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table1
 
-kable(table1, col.names = c("Year", "Property Use Types", "Buildings", "SqFt"), align = "cccc", caption = "Table 1 - Datasets property types quantities and areas") -> Table1
+kable(Table1, col.names = c("Year", "Property Use Types", "Buildings", "SqFt"), align = "cccc", caption = "Table 1 - Datasets property types quantities and areas") -> Table1
+
+Table1
 
 
 ################################################################################
 
 
 ```
-The latest publicly available  file is for the 2017 calender year. There are `r nrow( filter(L84, Data == "2017") )` entries for `r L84 %>% filter(Data == "2017") %>% select(No.Buildings) %>% sum()` in `r nrow(unique(L84 %>% filter(Data == "2017") %>% select(Type)))`  categories identified as primary use by the owners. 
+There is a large increase in the data, filtering just on Type being office yealds. 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
-
-
-
-
-```
-
-What is the total thermal energy as reported through the Benchamrking
-Law, and how does that compair to Electrical energy used in the same
-buildings.
-
-Use the information file.
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-#Lets just look at Types that are "Office"
-L84 %>% filter(Type == "Office") -> L84_office
-
-L84_office %>%
-  group_by(Data, Type) %>%
+L84 %>%
+  filter( Type == "Office") %>% 
+  group_by(Data) %>%
   summarise( GSF = sum(GSF), Buildings = sum(No.Buildings)) -> Type_tables
- Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table1
+ Type_tables %>% group_by(Data) %>% summarise("Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table2
 
-kable(table1, col.names = c("Year", "Property Use Types", "Buildings", "SqFt"), align = "cccc", caption = "Table 1 - Datasets property types quantities and areas") -> Table1
+kable(Table2, col.names = c("Year", "No.", "SqFt"), align = "cccc", caption = "Table 2 - Office  quantities and areas", format.args = list(big.mark = ',')) %>%
+ kable_styling() -> Table2
 
-Table1
-  
-```
-
-
-
-
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-
-  
-# Make a box plot showing fule type statics in a box plot
-
-#Note how EUI ratio is lower for all electric buildings. 
-
-
+Table2
 
 ```
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
-#EUI 
+T17 <- filter(L84, Data == "2017") %>% select(BBL, Address)
+T16 <- filter(L84, Data == "2016") %>% select(BBL, Address)
+T15 <- filter(L84, Data == "2015") %>% select(BBL, Address)
 
-
-#EUI by type and range
-
-#  summarise(Gross.SF = sum(Self.Reported.Gross.Floor.Area..ft².), Buildings = 
-# sum(Number.of.Buildings), Steam = sum(District.Steam.Use..kBtu.))
+T_Office <- inner_join(T17, T16, by = "BBL") %>% filter(BBL != "0")
+length(unique(T_Office$BBL))
+length(unique(L84_2017$Address))
+length(unique(L84_2017$BBL))
 
 ```
+
+
+
 
