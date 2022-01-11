@@ -98,7 +98,8 @@ for (i in tonum)L84[,i]<-as.numeric(L84[,i])
 
 L84 %>%
   mutate(Oil = Oil1 + Oil2 + Oil4 + Oil56) %>%
-  select("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil" , "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data") -> L84
+  select("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil" , "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data") %>%
+  distinct() -> L84
 
 
 # Add Size and age bins
@@ -111,7 +112,7 @@ remove(Building_Ages, GSF_Ranges, i, tonum ) #clean up environment
 
 
 ################################################################################
-L84 %>%
+L84_2015 %>%
   group_by(Data, Type) %>%
   summarise( GSF = sum(GSF), Buildings = sum(No.Buildings)) -> Type_tables
  Type_tables %>% group_by(Data) %>% summarise(Type = n(), "Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table1
