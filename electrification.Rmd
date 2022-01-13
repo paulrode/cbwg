@@ -148,6 +148,10 @@ Table2
 
 ```
 
+From the pathways report categories:
+1-4 Family, Multifamily, Commercial, Institutional (General, Hospitals, K-12, Religious, Universities)
+
+
 ```{r, echo = FALSE, message = FALSE, warning = FALS}
 
 
