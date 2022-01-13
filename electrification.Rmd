@@ -151,7 +151,17 @@ Table2
 ```{r, echo = FALSE, message = FALSE, warning = FALS}
 
 
-#  Use the CaseWhen funciton here...... 
+#  Use the Case_When funciton here to aggergate building types to those in the Pathways report
+
+
+
+L84 %>% mutate(Type2 = case_when("Residence Hall/Dormitory" == (Type) ~ "Higher Ed",
+                                 "Multifamily Housing" == (Type)   ~ "Multifamily2",
+                                 "Office" == (Type) ~ "Office",
+                                 "Hotel" == (Type) ~ "Reaidential2"
+                                  )) -> L84_2
+
+
 
 
 ```
