@@ -7,9 +7,9 @@ output:
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 
-###############################################################################
-#                             Set up environment                                #
-###############################################################################
+##########
+##########  Set up environment                                
+##########
 
 my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidytext","lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kableExtra", "formattable") 
 invisible( lapply(my_packages, require, character.only = TRUE))
@@ -27,7 +27,7 @@ if (place == "Home"){setwd("C:/Users/paulr/Documents/R/cbwg")} else
 if (!file.exists("data")) {
   dir.create("data")}
   
-# Set up the not in operator 
+# Set up the "not in" operator for later use. 
   `%!in%` <- Negate(`%in%`)
 
 rm(place, my_packages )
@@ -149,10 +149,13 @@ Table2
 ```
 
 From the pathways report categories:
-1-4 Family, Multifamily, Commercial, Institutional (General, Hospitals, K-12, Religious, Universities)
+1-4 Family, Multifamily, Commercial, Institutional (General, Hospitals, K-12, Religious, Universities). First I will focus on just those sites that are loabled office and exists in all years for whcih I have data. 
+  Need to filter our duplicates and 0 bbl's take out the 0 bbl's first. 
 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALS}
+
+# Filter out sites that are in all year's data sets.
 
 
 L84 %>%
