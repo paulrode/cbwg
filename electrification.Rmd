@@ -47,6 +47,30 @@ Data wranging actions taken
 
 Note that while Local Law 84 data estist back to 2010 data fields before 2015 lack specific energy consumption and year built. 
 
+
+Try finding and get rid of duplicates using this: 
+
+You can also do this using sapply from base R to replace @Ronak’s for loop. invisible is not a necessary function but just wrapped around sapply to make it work silently.
+invisible(
+  sapply(2:nrow(df), function(i) {
+    df$Vol[i] <<- (df$Vol[i-1] + df$In[i]) -  (df$Vol[i-1] + df$In[i])*0.01
+  }
+         )
+)
+
+> df
+  In       Vol
+1  1  1.000000
+2  4  4.950000
+3  0  4.900500
+4  0  4.851495
+5  1  5.792980
+6  2  7.715050
+7  3 10.607900
+8  0 10.501821
+9  0 10.396803
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 
