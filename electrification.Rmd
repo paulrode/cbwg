@@ -87,9 +87,28 @@ L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information a
   select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `DOF Gross Floor Area`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings - Self-reported`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Sheet, Data ) %>%
   data.frame() -> L84_2016
 
+
 colnames(L84_2016) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data") 
 
-L84_2016 %>% distinct() -> L84_2016
+L84_2016$Oil2 <- as.numeric(L84_2016$Oil2)
+L84_2016$Oil4 <- as.numeric(L84_2016$Oil4)
+L84_2016$Oil56 <- as.numeric(L84_2016$Oil56)
+L84_2016$Steam <- as.numeric(L84_2016$Steam)
+L84_2016$N.Gas <- as.numeric(L84_2016$N.Gas)
+L84_2016$Elect <- as.numeric(L84_2016$Elect)
+L84_2016$Water <- as.numeric(L84_2016$Water)
+
+L84_2016[is.na(L84_2016)] <-0
+
+L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+  relocate(T.Energy, .after = Address) %>%
+  arrange(BBL, T.Energy) -> L84_2016
+
+L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
+  distinct() %>%
+  filter( T.Energy != 0) %>%
+  distinct(BBL, .keep_all = TRUE) %>%
+  filter(BBL != 0) -> L84_2016
 
 
 
