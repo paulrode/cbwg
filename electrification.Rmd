@@ -80,6 +80,37 @@ L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2017
 
+############
+############
+
+L84_2017 %>%
+filter(Type %>% str_detect("Office")) -> L84_Office
+
+L84_2017 %>%
+  count(Type) %>%
+  ggplot(aes(Type, n)) +
+  geom_col()
+
+L84_2017 %>%
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
+  geom_col()
+
+L84_2017 %>%
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
+  geom_col() +
+  coord_flip()
+
+L84_2017 %>%
+  mutate(Type = fct_lump(Type, n=5)) %>%
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
+  geom_col() +
+  coord_flip()
 
 ###
 ### Read in 2016 data 
