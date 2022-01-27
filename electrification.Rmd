@@ -91,6 +91,17 @@ L84_2017 %>%
   ggplot(aes(Type, n)) +
   geom_col() +
   coord_flip() -> plot1
+plot1
+
+L84_2017 %>%
+  group_by(Type) %>%
+  summarise(T.GSF = sum(GSF)) %>%
+  arrange(desc(T.GSF)) %>%
+  head(n=5) 
+  ggplot(aes(Type, T.GSF)) +
+  geom_col() +
+  coord_flip() 
+  
 
 #############
 #############
