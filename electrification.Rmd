@@ -90,15 +90,16 @@ L84_2017 %>%
   mutate(Type = fct_reorder(Type, n)) %>%
   ggplot(aes(Type, n)) +
   geom_col() +
-  coord_flip() -> plot1
-plot1
+  coord_flip()
 
 L84_2017 %>%
   group_by(Type) %>%
-  summarise(T.GSF = sum(GSF)) %>%
-  arrange(desc(T.GSF)) %>%
-  head(n=5) 
-  ggplot(aes(Type, T.GSF)) +
+  summarise(T.GSF = sum(GSF), T.Count = sum(No.Buildings), Weight = T.Count * T.GSF)  %>%
+  arrange(desc(Weight)) %>%
+  head(n=5) -> SumTable
+
+
+  ggplot(data = SumTable, aes(x = Type, y = Weight)) +
   geom_col() +
   coord_flip() 
   
