@@ -99,7 +99,7 @@ L84_2017 %>%
   head(n=15) -> SumTable
 
 
-  ggplot(data = SumTable, aes(x = Type, y = Weight)) +
+  ggplot(data = SumTable, aes(fct_reorder(Type, Weight), Weight)) +
   geom_col() +
   coord_flip() 
   
