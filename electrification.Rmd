@@ -73,6 +73,8 @@ L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + 
   relocate(T.Energy, .after = Address) %>%
   arrange(BBL, T.Energy) -> L84_2017
 
+L84_2017[,c("Zip")] <- as.numeric(L84_2017[,c("Zip")])
+
 # Remove duplicates 
 L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
@@ -85,22 +87,12 @@ L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
 
 
 L84_2017 %>%
-  mutate(Type = fct_lump(Type, n=5, w = GSF)) %>%
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
+  mutate(Type1 = fct_lump(Type, n=5, w = GSF)) %>%
+  count(Type1) %>%
+  mutate(Type2 = fct_reorder(Type1, n)) %>%
+  ggplot(aes(Type2, n)) +
   geom_col() +
-  coord_flip()
-
-L84_2017 %>%
-  group_by(Type) %>%
-  summarise(T.GSF = sum(GSF), T.Count = sum(No.Buildings), Weight = T.Count * T.GSF)  %>%
-  arrange(desc(Weight)) %>%
-  head(n=15) -> SumTable
-
-
-  ggplot(data = SumTable, aes(fct_reorder(Type, Weight), Weight)) +
-  geom_col() +
+  labs(title = "2017") + 
   coord_flip() -> plot1
   
 
@@ -126,6 +118,11 @@ L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information a
 
 colnames(L84_2016) <- c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data") 
 
+L84_2016$Id <- as.numeric(L84_2016$Id)
+L84_2016$Zip <- as.numeric(L84_2016$Zip)
+L84_2016$Built <- as.numeric(L84_2016$Built)
+L84_2016$Oil1 <- as.numeric(L84_2016$Oil1)
+L84_2016$Diesel <- as.numeric(L84_2016$Diesel)
 L84_2016$BBL <- as.numeric(L84_2016$BBL)
 L84_2016$Oil2 <- as.numeric(L84_2016$Oil2)
 L84_2016$Oil4 <- as.numeric(L84_2016$Oil4)
@@ -158,6 +155,7 @@ L84_2016 %>%
   mutate(Type = fct_reorder(Type, n)) %>%
   ggplot(aes(Type, n)) +
   geom_col() +
+  labs(title = "2016") + 
   coord_flip()  -> plot2
 
 ```
@@ -182,6 +180,11 @@ L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Rep
 
   L84_2015 %>% select(c("Id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Sheet", "Data" )) -> L84_2015
   
+  
+  L84_2015$Id <- as.numeric(L84_2015$Id)
+  L84_2015$Built <- as.numeric(L84_2015$Built)
+  L84_2015$Oil1 <- as.numeric( L84_2015$Oil1)
+  L84_2015$Diesel <- as.numeric(L84_2015$Diesel)
   L84_2015$Oil2 <- as.numeric(L84_2015$Oil2)
   L84_2015$Oil4 <- as.numeric(L84_2015$Oil4)
   L84_2015$Oil56 <- as.numeric(L84_2015$Oil56)
@@ -205,6 +208,7 @@ L84_2015 %>%
   mutate(Type = fct_reorder(Type, n)) %>%
   ggplot(aes(Type, n)) +
   geom_col() +
+  labs(title = "2015") + 
   coord_flip() -> plot3
 
 ```
@@ -229,11 +233,20 @@ plot3
 ### Join together the three years to get buildings that are in all years. 
 ###
 
-inner_join(L84_2017, L84_2016, by = "BBL") -> L84_1617
-inner_join(L84_1617, L84_2015, by = "BBL") -> L84_Total
+L84_2017 %>% 
+  inner_join(L84_2016, by = "BBL") %>% 
+  inner_join(L84_2015, by = "BBL") %>% 
+  select(BBL) %>% 
+  pull(BBL) -> AllYearsBBL
 
-bind_rows(L84_2016, L84_2015)
-rlang::last_error()
+L84_2015 %>% 
+  filter(BBL %in% AllYearsBBL) -> temp15
+L84_2016 %>% 
+  filter(BBL %in% AllYearsBBL) -> temp16
+L84_2017 %>% 
+  filter(BBL %in% AllYearsBBL) -> temp17
+
+bind_rows(temp15, temp16, temp17) -> TotalTemp
 
 
 ```
