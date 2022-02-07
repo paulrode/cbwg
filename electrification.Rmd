@@ -74,6 +74,8 @@ L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + 
   arrange(BBL, T.Energy) -> L84_2017
 
 L84_2017[,c("Zip")] <- as.numeric(L84_2017[,c("Zip")])
+L84_2017$Type <- as.factor(L84_2017$Type)
+L84_2017$Data <- as.numeric(L84_2017$Data)
 
 # Remove duplicates 
 L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
@@ -132,6 +134,8 @@ L84_2016$N.Gas <- as.numeric(L84_2016$N.Gas)
 L84_2016$Elect <- as.numeric(L84_2016$Elect)
 L84_2016$GSF <- as.numeric(L84_2016$GSF)
 L84_2016$Water <- as.numeric(L84_2016$Water)
+L84_2016$Type <- as.factor(L84_2016$Type)
+L84_2016$Data <- as.numeric(L84_2016$Data)
 
 L84_2016[is.na(L84_2016)] <-0
 
@@ -189,6 +193,8 @@ L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Rep
   L84_2015$Oil4 <- as.numeric(L84_2015$Oil4)
   L84_2015$Oil56 <- as.numeric(L84_2015$Oil56)
   L84_2015$Steam <- as.numeric(L84_2015$Steam)
+  L84_2015$Type <- as.factor(L84_2015$Type)
+  L84_2015$Data <- as.numeric(L84_2015$Data)
   
     L84_2015[is.na(L84_2015)] <-0
   
@@ -246,11 +252,37 @@ L84_2016 %>%
 L84_2017 %>% 
   filter(BBL %in% AllYearsBBL) -> temp17
 
-bind_rows(temp15, temp16, temp17) -> TotalTemp
+bind_rows(temp15, temp16, temp17) -> SameStore
+
+remove(temp15, temp16, temp17)
 
 
 ```
-There is a large increase in the data, filtering just on Type being office yealds. 
+Combining datasets for years 2015, 16 and 17.  
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
+SameStore %>% 
+  filter(GSF > 50000) %>%
+  group_by(Data) %>% 
+  count(Type) %>% 
+  arrange(desc(n))
+
+
+SameStore %>% 
+  filter(GSF > 50000) %>% 
+  ggplot( aes(x =  Data, fill = Type)) +
+  geom_bar() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  labs(title = "Types",
+       x = "horz",
+       y = "vert")
+
+
+```
+
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 L84 %>%
