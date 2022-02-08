@@ -80,7 +80,7 @@ L84_2017$Data <- as.numeric(L84_2017$Data)
 # Remove duplicates 
 L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0) %>%
+  filter( T.Energy != 0 | GSF > 25000 ) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2017
 
@@ -145,7 +145,7 @@ L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + 
 
 L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0) %>%
+  filter( T.Energy != 0 | GSF > 25000) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2016
 
@@ -204,7 +204,7 @@ L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + 
 
 L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0) %>%
+  filter( T.Energy != 0 | GSF > 25000 ) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2015
 
@@ -244,6 +244,18 @@ L84_2017 %>%
   inner_join(L84_2015, by = "BBL") %>% 
   select(BBL) %>% 
   pull(BBL) -> AllYearsBBL
+
+SameStore %>%
+  filter(Data == 2017) %>% 
+  mutate(Type = fct_lump(Type, n=25, w = GSF)) %>%
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
+  geom_col() +
+  labs(title = "20__") + 
+  coord_flip() 
+
+
 
 L84_2015 %>% 
   filter(BBL %in% AllYearsBBL) -> temp15
