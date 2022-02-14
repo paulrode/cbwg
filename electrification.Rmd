@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-place <- "Home"
-# place <-  "work"
+#place <- "Home"
+ place <-  "work"
 
 
 #Set proper working Dir 
@@ -264,7 +264,7 @@ SameStore %>%
 
 
 SameStore %>%
-  filter(Data == 2017) %>% 
+  filter(Data == 2015) %>% 
   mutate(Type = fct_lump(Type, n=25, w = GSF)) %>%
   count(Type) %>%
   mutate(Type = fct_reorder(Type, n)) %>%
@@ -275,7 +275,7 @@ SameStore %>%
 
 
 
-L84_2015 %>% 
+\L84_2015 %>% 
   filter(BBL %in% AllYearsBBL) -> temp15
 L84_2016 %>% 
   filter(BBL %in% AllYearsBBL) -> temp16
