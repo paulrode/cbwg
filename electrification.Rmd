@@ -275,14 +275,8 @@ SameStore %>%
   group_by(Type, Data) %>% 
   summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy)) -> SameTypes
 
-	
 
-
-
-
-
-
-\L84_2015 %>% 
+L84_2015 %>% 
   filter(BBL %in% AllYearsBBL) -> temp15
 L84_2016 %>% 
   filter(BBL %in% AllYearsBBL) -> temp16
