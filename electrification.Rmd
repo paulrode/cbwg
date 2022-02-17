@@ -55,10 +55,9 @@ used distict(var 1, .keep_all = TRUE)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-###
-### Read in 2017 data 
-###
-
+################
+# Read in data #
+################
 
 L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
   mutate(Data = "2017") %>%
@@ -84,31 +83,6 @@ L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2017
 
-############
-############
-
-
-L84_2017 %>%
-  mutate(Type1 = fct_lump(Type, n=5, w = GSF)) %>%
-  count(Type1) %>%
-  mutate(Type2 = fct_reorder(Type1, n)) %>%
-  ggplot(aes(Type2, n)) +
-  geom_col() +
-  labs(title = "2017") + 
-  coord_flip() -> plot1
-  
-
-#############
-#############
-```
-
-
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-###
-### Read in 2016 data 
-###
 
 L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", 
             col_names = TRUE, na = "NA", col_types = NULL)%>% 
@@ -148,27 +122,6 @@ L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2016
 
-################
-################
-
-
-L84_2016 %>%
-  mutate(Type = fct_lump(Type, n=6, w = GSF)) %>%
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
-  geom_col() +
-  labs(title = "2016") + 
-  coord_flip()  -> plot2
-
-```
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-###
-### Read in 2015 Data 
-###
 
 L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = "NA", col_types = NULL )%>% mutate(Sheet = "Information and Metrics") %>%    mutate(Data = "2015") %>%
   select( "Property Name", "NYC Borough, Block and Lot (BBL)", "Street Number","Street Name" , "Zip Code", "Borough", "Property GFA - Self-reported (ft²)", "Primary Property Type - Self Selected", "Year Built", "Number of Buildings - Self-reported", "Fuel Oil #1 Use (kBtu)", "Fuel Oil #2 Use (kBtu)", "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "Water Use (All Water Sources) (kgal)", Sheet, Data ) %>%
@@ -205,36 +158,9 @@ L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2015
 
-L84_2015 %>%
-  mutate(Type = fct_lump(Type, n=6, w = GSF)) %>%
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
-  geom_col() +
-  labs(title = "2015") + 
-  coord_flip() -> plot3
-
-```
-
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-par(mfrow = c(3,1))
-plot1
-plot2
-plot3
-
-
-
-```
-
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-###
-### Join together the three years to get buildings that are in all years. 
-###
+###########################
+# Join data sets together #
+###########################
 
 L84_2017 %>% 
   inner_join(L84_2016, by = c("BBL", "Type")) %>% 
@@ -251,42 +177,28 @@ L84_2017 %>%
 
 bind_rows(temp15, temp16, temp17) -> SameStore
 
-remove(temp15, temp16, temp17)
-```
+SameStore %>% 
+  mutate(Type_min = fct_lump(Type, n=10, w = GSF)) -> SameStore
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 SameStore %>% 
   group_by(Type) %>% 
   count(Type) -> SameTypes
 
-#Rank by number of properties
-SameStore %>%
-  mutate(Type = fct_lump(Type, n=5, w = GSF)) %>%
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
-  geom_col() +
-  labs(title = "20__") + 
-  coord_flip() 
-
-
-#Rank by number of properties
-SameStore %>%
-  group_by(Type, Data) %>% 
-  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy)) -> SameTypes
-
-
-L84_2015 %>% 
-  filter(BBL %in% AllYearsBBL) -> temp15
-L84_2016 %>% 
-  filter(BBL %in% AllYearsBBL) -> temp16
-L84_2017 %>% 
-  filter(BBL %in% AllYearsBBL) -> temp17
-
-bind_rows(temp15, temp16, temp17) -> SameStore
-
 remove(temp15, temp16, temp17)
+```
 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Rank by number of properties
+SameStore %>%
+  group_by(Type_min) %>%  
+  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy)) %>% 
+  arrange(desc(GSF), desc(T.Energy)) -> Types
+
+Types %>% 
+  kable(format = "html", digits = 2)
 
 ```
 Combining datasets for years 2015, 16 and 17.  
@@ -300,6 +212,15 @@ SameStore %>%
   arrange(desc(n))
 
 
+#Rank by number of properties
+SameStore %>%
+  count(Type_min) %>%
+  mutate(Type_min = fct_reorder(Type_min, n)) %>%
+  ggplot(aes(Type_min, n)) +
+  geom_col() +
+  labs(title = "20__") + 
+  coord_flip() 
+
 SameStore %>% 
   filter(GSF > 50000) %>% 
   ggplot( aes(x =  Data, fill = Type)) +
@@ -310,6 +231,32 @@ SameStore %>%
   labs(title = "Types",
        x = "horz",
        y = "vert")
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+L84_2015 %>%
+  mutate(Type = fct_lump(Type, n=6, w = GSF)) %>%
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
+  geom_col() +
+  labs(title = "2015") + 
+  coord_flip() -> plot3
+
+
+
+par(mfrow = c(3,1))
+plot1
+plot2
+plot3
+
+
+
+```
 
 
 ```
