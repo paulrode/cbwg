@@ -158,6 +158,9 @@ L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2015
 
+LL84_2017a <- read.csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv")
+
+
 ###########################
 # Join data sets together #
 ###########################
