@@ -59,98 +59,29 @@ used distict(var 1, .keep_all = TRUE)
 # Read in data #
 ################
 
-L84_2017 <- read_excel("data/2017_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA" )%>% mutate(Sheet = "Information and Metrics") %>%   
-  mutate(Data = "2017") %>%
-  select( `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `Self-Reported Gross Floor Area (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Data ) %>%
-  data.frame() -> L84_2017
 
-colnames(L84_2017) <- c("Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = "NA", col_types = NULL )%>% mutate(Sheet = "Information and Metrics") %>%    mutate(Data = "2015") 
 
-L84_2017[is.na(L84_2017)] <-0
-
-L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
-  relocate(T.Energy, .after = Address) %>%
-  arrange(BBL, T.Energy) -> L84_2017
-
-L84_2017[,c("Zip")] <- as.numeric(L84_2017[,c("Zip")])
-L84_2017$Type <- as.factor(L84_2017$Type)
-L84_2017$Data <- as.numeric(L84_2017$Data)
-
-# Remove duplicates 
-L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
-  distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000 ) %>%
-  distinct(BBL, .keep_all = TRUE) %>%
-  filter(BBL != 0) -> L84_2017
-
-
-L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", 
-            col_names = TRUE, na = "NA", col_types = NULL)%>% 
-  mutate(Sheet = "Information and Metrics") %>%
-            mutate(Data = "2016") %>%
-  select(`Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `DOF Gross Floor Area`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings - Self-reported`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Data ) %>%
-  data.frame() -> L84_2016
-
-
-colnames(L84_2016) <- c("Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data") 
-
-L84_2016$Zip <- as.numeric(L84_2016$Zip)
-L84_2016$Built <- as.numeric(L84_2016$Built)
-L84_2016$Oil1 <- as.numeric(L84_2016$Oil1)
-L84_2016$Diesel <- as.numeric(L84_2016$Diesel)
-L84_2016$BBL <- as.numeric(L84_2016$BBL)
-L84_2016$Oil2 <- as.numeric(L84_2016$Oil2)
-L84_2016$Oil4 <- as.numeric(L84_2016$Oil4)
-L84_2016$Oil56 <- as.numeric(L84_2016$Oil56)
-L84_2016$Steam <- as.numeric(L84_2016$Steam)
-L84_2016$N.Gas <- as.numeric(L84_2016$N.Gas)
-L84_2016$Elect <- as.numeric(L84_2016$Elect)
-L84_2016$GSF <- as.numeric(L84_2016$GSF)
-L84_2016$Water <- as.numeric(L84_2016$Water)
-L84_2016$Type <- as.factor(L84_2016$Type)
-L84_2016$Data <- as.numeric(L84_2016$Data)
-
-L84_2016[is.na(L84_2016)] <-0
-
-L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
-  relocate(T.Energy, .after = Address) %>%
-  arrange(BBL, T.Energy) -> L84_2016
-
-L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
-  distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000) %>%
-  distinct(BBL, .keep_all = TRUE) %>%
-  filter(BBL != 0) -> L84_2016
-
-
-L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = "NA", col_types = NULL )%>% mutate(Sheet = "Information and Metrics") %>%    mutate(Data = "2015") %>%
-  select( "Property Name", "NYC Borough, Block and Lot (BBL)", "Street Number","Street Name" , "Zip Code", "Borough", "Property GFA - Self-reported (ft²)", "Primary Property Type - Self Selected", "Year Built", "Number of Buildings - Self-reported", "Fuel Oil #1 Use (kBtu)", "Fuel Oil #2 Use (kBtu)", "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "Water Use (All Water Sources) (kgal)", Data ) %>%
+L84_2015 %>%
+  select( "Record Number", "Property Name", "NYC Borough, Block and Lot (BBL)", "Street Number","Street Name" , "Zip Code", "Borough", "Property GFA - Self-reported (ft²)", "Primary Property Type - Self Selected", "Year Built", "Number of Buildings - Self-reported", "Fuel Oil #1 Use (kBtu)", "Fuel Oil #2 Use (kBtu)", "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "Water Use (All Water Sources) (kgal)", Data ) %>%
   data.frame() -> L84_2015
 
 # Feature engineering to make consistent with base data frame. 
   L84_2015$Address <- paste(L84_2015$Street.Number, L84_2015$Street.Name, sep = ' ')
   L84_2015[-(4:5) ] -> L84_2015
 
-  colnames(L84_2015) <- c( "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data" , "Address")
+  colnames(L84_2015) <- c( "id", "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data" , "Address")
   
+L84_2015[c(8:18)] <- apply(L84_2015[c(8:18)], 2, as.numeric )
+L84_2015$Type <- as.factor(L84_2015$Type)
+L84_2015$BBL <- as.character(L84_2015$BBL)
 
-  L84_2015 %>% select(c("Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data" )) -> L84_2015
-  
-  L84_2015$Built <- as.numeric(L84_2015$Built)
-  L84_2015$Oil1 <- as.numeric( L84_2015$Oil1)
-  L84_2015$Diesel <- as.numeric(L84_2015$Diesel)
-  L84_2015$Oil2 <- as.numeric(L84_2015$Oil2)
-  L84_2015$Oil4 <- as.numeric(L84_2015$Oil4)
-  L84_2015$Oil56 <- as.numeric(L84_2015$Oil56)
-  L84_2015$Steam <- as.numeric(L84_2015$Steam)
-  L84_2015$Type <- as.factor(L84_2015$Type)
-  L84_2015$Data <- as.numeric(L84_2015$Data)
-  
-    L84_2015[is.na(L84_2015)] <-0
+L84_2015[is.na(L84_2015)] <-0
   
 L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+  relocate(Address, .after = BBL) %>% 
   relocate(T.Energy, .after = Address) %>%
-  arrange(BBL, T.Energy) -> L84_2015
+  arrange(id, T.Energy) -> L84_2015
 
 L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
@@ -160,29 +91,129 @@ L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
 
 
 
-L84_2017a <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )%>% mutate(Data = "2017a") %>% 
-  select( `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
-  data.frame() -> L84_2017a
+L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA", col_types = NULL) 
 
-colnames(L84_2017a) <- c("Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+L84_2016 %>% 
+  mutate(Data = "2016") %>%
+  select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `DOF Gross Floor Area`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings - Self-reported`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Data ) %>%
+  data.frame() -> L84_2016
 
-L84_2017a[is.na(L84_2017a)] <-0
 
-L84_2017a %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data") 
+
+L84_2016[c(1,5,7, 9:19)] <- apply(L84_2016[c(1,5, 7, 9:19)], 2, as.numeric )
+L84_2016$Type <- as.factor(L84_2016$Type)
+
+L84_2016[is.na(L84_2016)] <-0
+
+L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
   relocate(T.Energy, .after = Address) %>%
-  arrange(BBL, T.Energy) -> L84_2017a
+  arrange(id, T.Energy) -> L84_2016
 
-L84_2017a[,c("Zip")] <- as.numeric(L84_2017a[,c("Zip")])
-L84_2017a$Type <- as.factor(L84_2017a$Type)
+L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
+  distinct() %>%
+  filter( T.Energy != 0 | GSF > 25000) %>%
+  distinct(BBL, .keep_all = TRUE) %>%
+  filter(BBL != 0) -> L84_2016
+
+
+L84_2017 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )
+L84_2017 %>% mutate(Data = "2017") %>% 
+  select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  data.frame() -> L84_2017
+
+colnames(L84_2017) <- c("id",  "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+
+L84_2017[is.na(L84_2017)] <-0
+
+L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+  relocate(T.Energy, .after = Address) %>%
+  arrange(id, T.Energy) -> L84_2017
+
+L84_2017[,c("Zip")] <- as.numeric(L84_2017[,c("Zip")])
+L84_2017$Type <- as.factor(L84_2017$Type)
 
 # Remove duplicates 
-L84_2017a %>% arrange(BBL, Address, T.Energy) %>%
+L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
   filter( T.Energy != 0 | GSF > 25000 ) %>%
   distinct(BBL, .keep_all = TRUE) %>%
-  filter(BBL != 0) -> L84_2017a
+  filter(BBL != 0) -> L84_2017
 
 
+L84_2018 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2019__Data_for_Calendar_Year_2018_.csv", col_names = TRUE, na = "NA" )
+
+L84_2018 %>% mutate(Data = "2018") %>% 
+  select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  data.frame() -> L84_2018
+
+colnames(L84_2018) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+
+L84_2018[9:19] <- apply(L84_2018[9:19] , 2, as.numeric)
+L84_2018$Type <- as.factor(L84_2018$Type)
+
+L84_2018[is.na(L84_2018)] <-0
+
+L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+  relocate(T.Energy, .after = Address) %>%
+  arrange(id, T.Energy) -> L84_2018
+
+# Remove duplicates 
+L84_2018 %>% arrange(BBL, Address, T.Energy) %>%
+  distinct() %>%
+  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  distinct(BBL, .keep_all = TRUE) %>%
+  filter(BBL != 0) -> L84_2018
+
+
+L84_2019 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2020__Data_for_Calendar_Year_2019_.csv", col_names = TRUE, na = "NA" )
+
+L84_2019 %>% mutate(Data = "2019") %>% 
+  select(`Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  data.frame() -> L84_2019
+
+colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+
+L84_2019[9:19] <- apply(L84_2019[9:19], 2, as.numeric )
+L84_2019$Type <- as.factor(L84_2019$Type)
+
+L84_2019[is.na(L84_2019)] <-0
+
+L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+  relocate(T.Energy, .after = Address) %>%
+  arrange(id, T.Energy) -> L84_2019
+
+# Remove duplicates 
+L84_2019 %>% arrange(BBL, Address, T.Energy) %>%
+  distinct() %>%
+  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  distinct(BBL, .keep_all = TRUE) %>%
+  filter(BBL != 0) -> L84_2019
+
+
+L84_2020 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2021__Data_for_Calendar_Year_2020_.csv", col_names = TRUE, na = "NA" )
+
+L84_2020 %>% mutate(Data = "2020") %>% 
+  select(`Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  data.frame() -> L84_2020
+
+colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+
+L84_2020[9:19] <- apply(L84_2020[9:19], 2, as.numeric )
+L84_2020$Type <- as.factor(L84_2020$Type)
+
+L84_2020[is.na(L84_2020)] <-0
+
+L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+  relocate(T.Energy, .after = Address) %>%
+  arrange(id, T.Energy) -> L84_2020
+
+# Remove duplicates 
+L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
+  distinct() %>%
+  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  distinct(BBL, .keep_all = TRUE) %>%
+  filter(BBL != 0) -> L84_2020
 
 
 
@@ -190,20 +221,34 @@ L84_2017a %>% arrange(BBL, Address, T.Energy) %>%
 # Join data sets together #
 ###########################
 
-L84_2017 %>% 
-  inner_join(L84_2016, by = c("BBL", "Type")) %>% 
-  inner_join(L84_2015, by = c("BBL", "Type")) %>% 
-  select(BBL) %>% 
-  pull(BBL) -> AllYearsBBL
+#Create a vector containing unique same store properties by property id. 
+L84_2020 %>% 
+  inner_join(L84_2019, by = c("id")) %>% 
+  inner_join(L84_2018, by = c("id")) %>% 
+  inner_join(L84_2017, by = "id") %>% 
+  inner_join(L84_2016, by = "id") %>%
+  inner_join(L84_2015, by = "id") %>% 
+  select(id) %>% 
+  pull(id) -> AllYearsID
 
+
+# create data frame of just same store properties 
 L84_2015 %>% 
-  filter(BBL %in% AllYearsBBL) -> temp15
+  filter(id %in% AllYearsID) -> temp15
 L84_2016 %>% 
-  filter(BBL %in% AllYearsBBL) -> temp16
+  filter(id %in% AllYearsID) -> temp16
 L84_2017 %>% 
-  filter(BBL %in% AllYearsBBL) -> temp17
+  filter(id %in% AllYearsID) -> temp17
+L84_2018 %>% 
+  filter(id %in% AllYearsID) -> temp18
+L84_2019 %>% 
+  filter(id %in% AllYearsID) -> temp19
+L84_2020 %>% 
+  filter(id %in% AllYearsID) -> temp20
 
-bind_rows(temp15, temp16, temp17) -> SameStore
+bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) -> SameStore
+
+
 
 SameStore %>% 
   mutate(Type_min = fct_lump(Type, n=10, w = GSF)) -> SameStore
@@ -212,7 +257,7 @@ SameStore %>%
   group_by(Type) %>% 
   count(Type) -> SameTypes
 
-remove(temp15, temp16, temp17)
+remove(temp15, temp16, temp17, temp18, temp19, temp20)
 ```
 
 
