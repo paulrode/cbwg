@@ -72,13 +72,13 @@ L84_2015 %>%
 
   colnames(L84_2015) <- c( "id", "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data" , "Address")
   
-L84_2015[c(8:18)] <- apply(L84_2015[c(8:18)], 2, as.numeric )
+L84_2015[c(8:19)] <- apply(L84_2015[c(8:19)], 2, as.numeric )
 L84_2015$Type <- as.factor(L84_2015$Type)
 L84_2015$BBL <- as.character(L84_2015$BBL)
 
 L84_2015[is.na(L84_2015)] <-0
   
-L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect )) %>%
   relocate(Address, .after = BBL) %>% 
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2015
@@ -101,12 +101,12 @@ L84_2016 %>%
 
 colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data") 
 
-L84_2016[c(1,5,7, 9:19)] <- apply(L84_2016[c(1,5, 7, 9:19)], 2, as.numeric )
+L84_2016[c(1,5,7, 9:20)] <- apply(L84_2016[c(1,5, 7, 9:20)], 2, as.numeric )
 L84_2016$Type <- as.factor(L84_2016$Type)
 
 L84_2016[is.na(L84_2016)] <-0
 
-L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect )) %>%
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2016
 
@@ -118,6 +118,7 @@ L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
 
 
 L84_2017 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )
+
 L84_2017 %>% mutate(Data = "2017") %>% 
   select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
   data.frame() -> L84_2017
@@ -126,11 +127,12 @@ colnames(L84_2017) <- c("id",  "Name", "BBL", "Address", "Zip", "Boruugh", "GSF"
 
 L84_2017[is.na(L84_2017)] <-0
 
-L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect )) %>%
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2017
 
 L84_2017[,c("Zip")] <- as.numeric(L84_2017[,c("Zip")])
+L84_2017[, "Data"] <- as.numeric(L84_2017[,"Data"])
 L84_2017$Type <- as.factor(L84_2017$Type)
 
 # Remove duplicates 
@@ -149,12 +151,12 @@ L84_2018 %>% mutate(Data = "2018") %>%
 
 colnames(L84_2018) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
 
-L84_2018[9:19] <- apply(L84_2018[9:19] , 2, as.numeric)
+L84_2018[9:20] <- apply(L84_2018[9:20] , 2, as.numeric)
 L84_2018$Type <- as.factor(L84_2018$Type)
 
 L84_2018[is.na(L84_2018)] <-0
 
-L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect )) %>%
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2018
 
@@ -174,12 +176,12 @@ L84_2019 %>% mutate(Data = "2019") %>%
 
 colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
 
-L84_2019[9:19] <- apply(L84_2019[9:19], 2, as.numeric )
+L84_2019[9:20] <- apply(L84_2019[9:20], 2, as.numeric )
 L84_2019$Type <- as.factor(L84_2019$Type)
 
 L84_2019[is.na(L84_2019)] <-0
 
-L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect )) %>%
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2019
 
@@ -199,12 +201,12 @@ L84_2020 %>% mutate(Data = "2020") %>%
 
 colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
 
-L84_2020[9:19] <- apply(L84_2020[9:19], 2, as.numeric )
+L84_2020[9:20] <- apply(L84_2020[9:20], 2, as.numeric )
 L84_2020$Type <- as.factor(L84_2020$Type)
 
 L84_2020[is.na(L84_2020)] <-0
 
-L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect + Water)) %>%
+L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2020
 
@@ -249,11 +251,11 @@ L84_2020 %>%
 bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) -> SameStore
 
 # Combine Factor Levels to align with policy and published reports
-levels(SameStore$Type)<-list(
-"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Residence Hall/Dormitory"),
+levels(SameStore$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Residence Hall/Dormitory","Autre"),
 
-"Office"=c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center
-Courthouse", "Entreposage libre-service"), 
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
 
 "Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
 
@@ -265,12 +267,10 @@ Courthouse", "Entreposage libre-service"),
 
 "K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
 
-"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples"))
 
-"Other" = c("Autre"))
-
-SameStore %>% 
-  mutate(Type_min = fct_lump(Type, n=5, w = GSF)) -> SameStore
+#SameStore %>% 
+#  mutate(Type_min = fct_lump(Type, n=5, w = GSF)) -> SameStore
 
 SameStore %>% 
   group_by(Type) %>% 
@@ -286,18 +286,18 @@ remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
 #Rank by number of properties
 SameStore %>%
-  group_by(Type_min) %>%  
+  group_by(Type) %>%  
   summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy)) %>% 
-  arrange(desc(GSF), desc(T.Energy)) -> Types
+  arrange(desc(T.Energy)) -> Types
 
 Types %>% 
   kable(format = "html", digits = 2)
 
 #Rank by number of properties
 SameStore %>%
-  count(Type_min) %>%
-  mutate(Type_min = fct_reorder(Type_min, n)) %>%
-  ggplot(aes(Type_min, n)) +
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
   geom_col() +
   labs(title = "20__") + 
   coord_flip() 
@@ -306,9 +306,9 @@ SameStore %>%
 #Rank by number of properties
 SameStore %>%
   filter(N.Gas != 0) %>% 
-  count(Type_min) %>%
-  mutate(Type_min = fct_reorder(Type_min, n)) %>%
-  ggplot(aes(Type_min, n)) +
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
   geom_col() +
   labs(title = "20__") + 
   coord_flip() 
@@ -317,76 +317,5 @@ SameStore %>%
 ```
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-L84_2015 %>%
-  mutate(Type = fct_lump(Type, n=6, w = GSF)) %>%
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
-  geom_col() +
-  labs(title = "2015") + 
-  coord_flip() -> plot3
-
-
-
-par(mfrow = c(3,1))
-plot1
-plot2
-plot3
-
-
-
-```
-
-
-```
-
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-L84 %>%
-  filter( Type == "Office") %>% 
-  group_by(Data) %>%
-  summarise( GSF = sum(GSF), Buildings = sum(No.Buildings)) -> Type_tables
- Type_tables %>% group_by(Data) %>% summarise("Number of Buildings" = sum(Buildings), "Footage" = sum(GSF)) -> Table2
-
-kable(Table2, col.names = c("Year", "No.", "SqFt"), align = "cccc", caption = "Table 2 - Office  quantities and areas", format.args = list(big.mark = ',')) %>%
- kable_styling() -> Table2
-
-Table2
-
-```
-
-From the pathways report categories:
-1-4 Family, Multifamily, Commercial, Institutional (General, Hospitals, K-12, Religious, Universities). First I will focus on just those sites that are loabled office and exists in all years for whcih I have data. 
-  Need to filter our duplicates and 0 bbl's take out the 0 bbl's first. 
-
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-
-#Steam QUantity Check
-
-L84_2017 %>%
-  select(Name, Address, Steam) %>%
-  filter(Steam > 0) -> SteamCustomers17
-sum(SteamCustomers17$Steam)/1000000
-
-L84_2016 %>%
-  select(Name, Address, Steam) %>%
-  filter(Steam > 0) -> SteamCustomers16
-sum(SteamCustomers16$Steam)/1000000
-
-
-L84_2015 %>%
-  select(Name, Address, Steam) %>%
-  filter(Steam > 0) -> SteamCustomers15
-sum(SteamCustomers15$Steam)/1000000
-
-
-#1 LBm of steam = 1000 BTU
-#1 MLBm of steam = 1000000 BTU
-
-
-
-```
 
