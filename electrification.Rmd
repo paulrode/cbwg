@@ -248,14 +248,34 @@ L84_2020 %>%
 
 bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) -> SameStore
 
+# Combine Factor Levels to align with policy and published reports
+levels(SameStore$Type)<-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Residence Hall/Dormitory"),
 
+"Office"=c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center
+Courthouse", "Entreposage libre-service"), 
+
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Social/Meeting Hall", 
+"Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples"), 
+
+"Other" = c("Autre"))
 
 SameStore %>% 
-  mutate(Type_min = fct_lump(Type, n=10, w = GSF)) -> SameStore
+  mutate(Type_min = fct_lump(Type, n=5, w = GSF)) -> SameStore
 
 SameStore %>% 
   group_by(Type) %>% 
-  count(Type) -> SameTypes
+  count(Type) %>% 
+  arrange(desc(n)) -> SameTypes
 
 remove(temp15, temp16, temp17, temp18, temp19, temp20)
 ```
@@ -283,14 +303,18 @@ SameStore %>%
   coord_flip() 
 
 
+#Rank by number of properties
+SameStore %>%
+  filter(N.Gas != 0) %>% 
+  count(Type_min) %>%
+  mutate(Type_min = fct_reorder(Type_min, n)) %>%
+  ggplot(aes(Type_min, n)) +
+  geom_col() +
+  labs(title = "20__") + 
+  coord_flip() 
+
 
 ```
-Combining datasets for years 2015, 16 and 17.  
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-
-```
-
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
