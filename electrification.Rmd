@@ -278,6 +278,13 @@ SameStore %>%
   arrange(desc(n)) -> SameTypes
 
 remove(temp15, temp16, temp17, temp18, temp19, temp20)
+
+# Add EUI
+SameStore %>% 
+  filter(GSF != 0) %>% 
+  mutate(EUI = T.Energy/GSF) %>%
+  relocate(EUI, .after = Address) -> SameStore
+
 ```
 
 
@@ -317,5 +324,16 @@ SameStore %>%
 ```
 
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
+SameStore %>% 
+  filter(Type == "Office") %>% 
+  ggplot(aes(x = Built, y = EUI)) +
+  geom_point()
+
+summary(SameStore$EUI)
+
+
+
+```
 
