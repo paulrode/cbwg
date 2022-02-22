@@ -32,28 +32,7 @@ if (!file.exists("data")) {
 
 rm(place, my_packages )
   
-```
 
-The goal with this data project is to use the LL84 benchmarking to
-identify the thermal potential in each of the building typologies. 1.
-Identify the kBTU's of gas, oil and district steam used (thermal fuel)
-in the commercial stock. 2. Allocate the thermal fuel among building
-typologies. 3. Show ranking of typologies by sf and thermal fule volumn.
-3. Show steam in manhattan as a breakout.
-
-Data wranging actions taken
-1. eliminated duplicates.
-2. Deleted outliers using a simple strategy of deteating the top ten and bottom ten buildings by steam consumption.  See 65 Broadway for why this is necessary, the steam consumption value was orders of magnitude higher then possible. 
-
-Note that while Local Law 84 data estist back to 2010 data fields before 2015 lack specific energy consumption and year built. 
-
-
-Try finding and get rid of duplicates using this: 
-
-used distict(var 1, .keep_all = TRUE)
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ################
 # Read in data #
@@ -300,6 +279,7 @@ SameStore %>%
 Types %>% 
   kable(format = "html", digits = 2)
 
+
 #Rank by number of properties
 SameStore %>%
   count(Type) %>%
@@ -326,13 +306,35 @@ SameStore %>%
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-SameStore %>% 
+
+#find Q1, Q3, and interquartile range for values in column A 
+Q1 <- quantile(SameStore$EUI, .25) 
+Q3 <- quantile(SameStore$EUI, .75)
+IQR <- IQR(SameStore$EUI)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+SameStore_no_outliers <- subset(SameStore, SameStore$EUI> (Q1 - 1.5*IQR) & SameStore$EUI< (Q3 + 1.5*IQR))
+
+remove(AllYearsID, IQR, Q1, Q3)
+
+SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
-  ggplot(aes(x = Built, y = EUI)) +
-  geom_point()
+  ggplot(aes(x = Built, y = EUI, color = Data)) +
+  geom_point() +
+  geom_smooth()
 
-summary(SameStore$EUI)
+SameStore_no_outliers %>% 
+  filter(Type == "Office", Data == "2020") %>% 
+  ggplot(aes(x = Built, y = EUI, color = Data)) +
+  geom_point() +
+  geom_smooth()
 
+
+
+SameStore_no_outliers %>% 
+  group_by(Data) %>% 
+  summarise("No.Buildings" = sum(No.Buildings), "Mean EUI" = mean(EUI), "T.Energy" = sum(T.Energy)/1000000000) %>% 
+  kable(format = "html", digits = 2)
 
 
 ```
