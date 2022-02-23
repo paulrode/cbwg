@@ -301,6 +301,7 @@ SameStore %>%
   coord_flip() 
 
 
+
 ```
 
 
@@ -321,13 +322,19 @@ SameStore_no_outliers %>%
   filter(Type == "Office") %>% 
   ggplot(aes(x = Built, y = EUI, color = Data)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth() +
+  facet_grid(Data ~.)
 
 SameStore_no_outliers %>% 
-  filter(Type == "Office", Data == "2020") %>% 
-  ggplot(aes(x = Built, y = EUI, color = Data)) +
+  filter(Type == "Office") %>% 
+  group_by(Built) %>% 
+  summarise("N.Build" = sum(No.Buildings), Data) %>% 
+  ggplot(aes(x = Built, y = N.Build)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth() +
+  geom_vline(aes(xintercept = 1942)) +
+  geom_vline(aes(xintercept = 1945))
+ 
 
 
 
@@ -336,6 +343,16 @@ SameStore_no_outliers %>%
   summarise("No.Buildings" = sum(No.Buildings), "Mean EUI" = mean(EUI), "T.Energy" = sum(T.Energy)/1000000000) %>% 
   kable(format = "html", digits = 2)
 
+SameStore_no_outliers %>% 
+  group_by(Type) %>% 
+  summarise("Total.Energy" = sum(T.Energy), "Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+  kable(format = "html", digits = 2)
+
+SameStore_no_outliers %>% 
+  group_by(Type) %>% 
+  summarise("Total.Energy" = sum(T.Energy), "Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+  ggplot( aes(x = Type, y = Total.Energy)) +
+  geom_col()
 
 ```
 
