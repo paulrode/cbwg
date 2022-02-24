@@ -350,9 +350,10 @@ SameStore_no_outliers %>%
 
 SameStore_no_outliers %>% 
   group_by(Type) %>% 
-  summarise("Total.Energy" = sum(T.Energy), "Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
-  ggplot( aes(x = Type, y = Total.Energy)) +
-  geom_col()
+  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Type, factor_key = TRUE) %>% 
+  ggplot(aes(Type, Utilities, fill = Energy)) +
+  geom_col(position = "stack")
 
 ```
 
