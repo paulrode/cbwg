@@ -276,29 +276,25 @@ SameStore %>%
   summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy)) %>% 
   arrange(desc(T.Energy)) -> Types
 
+
+
+#Table of buildings in dataset 
 Types %>% 
-  kable(format = "html", digits = 2)
+    mutate(across(where(is.numeric), round, 3)) %>%  
+    kable(format = "html", digits = 5, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (kBTU)" )) %>%     kable_styling(full_width = FALSE)
 
 
+      
 #Rank by number of properties
 SameStore %>%
   count(Type) %>%
   mutate(Type = fct_reorder(Type, n)) %>%
   ggplot(aes(Type, n)) +
   geom_col() +
-  labs(title = "20__") + 
+  labs(y = "Number of Buildings", x = "Use Types", title = "Counts of Buildings submitted for 2021 period") + 
   coord_flip() 
 
 
-#Rank by number of properties
-SameStore %>%
-  filter(N.Gas != 0) %>% 
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
-  geom_col() +
-  labs(title = "20__") + 
-  coord_flip() 
 
 
 
@@ -323,7 +319,8 @@ SameStore_no_outliers %>%
   ggplot(aes(x = Built, y = EUI, color = Data)) +
   geom_point() +
   geom_smooth() +
-  facet_grid(Data ~.)
+  facet_grid(Data ~.) +
+  geom_vline(aes(xintercept = 1930), color = "red")
 
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
@@ -333,7 +330,8 @@ SameStore_no_outliers %>%
   geom_point() +
   geom_smooth() +
   geom_vline(aes(xintercept = 1942)) +
-  geom_vline(aes(xintercept = 1945))
+  geom_vline(aes(xintercept = 1945)) +
+  geom_vline(aes(xintercept = 1930, color = "red"))
  
 
 
