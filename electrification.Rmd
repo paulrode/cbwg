@@ -38,6 +38,7 @@ rm(place, my_packages )
 # Read in data #
 ################
 
+LL97Text <- "https://www1.nyc.gov/assets/buildings/local_laws/ll97of2019.pdf"
 
 L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = "NA", col_types = NULL )%>% mutate(Sheet = "Information and Metrics") %>%    mutate(Data = "2015") 
 
@@ -229,36 +230,83 @@ L84_2020 %>%
 
 bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) -> SameStore
 
-# Combine Factor Levels to align with policy and published reports
+remove(temp15, temp16, temp17, temp18, temp19, temp20)
+
+
+
+####################################################################
+# Combine Factor Levels to align with policy and published reports #
+####################################################################
+
 levels(SameStore$Type) <-list(
-"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Residence Hall/Dormitory","Autre"),
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+
 
 "Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
 "Courthouse", "Entreposage libre-service"), 
 
+
 "Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+
 
 "Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
 "Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Social/Meeting Hall", 
 "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
 
+
 "HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+
 
 "K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
 
-"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples"))
 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
+
+
+#Code piece to narrow down Tyeps. 
 #SameStore %>% 
 #  mutate(Type_min = fct_lump(Type, n=5, w = GSF)) -> SameStore
+
+
+
+#########################
+# Add carbon parameters # 
+#########################
+
+EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimits", col_names = TRUE, na = "NA",col_types = c("numeric", "text", "numeric", "text", "numeric") ) %>% drop_na()
+
+CarbonFactors <- read_excel("data/LL97Parameters .xlsx", sheet = "CarbonFactors", col_names = TRUE, na = "NA",col_types = c("text", "numeric", "text", "numeric") ) %>% drop_na()
+
+
+
+#################################
+# Make Building Types dataframe #
+#################################
+
+#Rank by number of properties
+SameStore %>%
+  group_by(Type) %>%  
+  summarise("Number" = sum(No.Buildings), GSF_1000xSF = sum(GSF), T.Energy_MMbtu = sum(T.Energy))  %>% 
+  mutate(GSF_1000xSF  = GSF_1000xSF/1000, T.Energy_MMbtu = T.Energy_MMbtu/1000) %>% 
+  arrange(desc(T.Energy_MMbtu)) -> Types
+
+
+
+####################
+# Make Types table #
+####################
 
 SameStore %>% 
   group_by(Type) %>% 
   count(Type) %>% 
   arrange(desc(n)) -> SameTypes
 
-remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
-# Add EUI
+###########
+# Add EUI #
+###########
+
+
 SameStore %>% 
   filter(GSF != 0) %>% 
   mutate(EUI = T.Energy/GSF) %>%
@@ -269,14 +317,6 @@ SameStore %>%
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-#Rank by number of properties
-SameStore %>%
-  group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy)) %>% 
-  arrange(desc(T.Energy)) -> Types
-
-
 
 #Table of buildings in dataset 
 Types %>% 
