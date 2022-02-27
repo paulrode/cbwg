@@ -280,8 +280,8 @@ SameStore %>%
 
 #Table of buildings in dataset 
 Types %>% 
-    mutate(across(where(is.numeric), round, 3)) %>%  
-    kable(format = "html", digits = 5, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (kBTU)" )) %>%     kable_styling(full_width = FALSE)
+    mutate(across(where(is.numeric), signif, 3)) %>%  
+    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (kBTU)" )) %>%     kable_styling(full_width = FALSE)
 
 
       
@@ -340,7 +340,7 @@ SameStore_no_outliers %>%
 SameStore_no_outliers %>% 
   group_by(Data) %>% 
   summarise("No.Buildings" = sum(No.Buildings), "Mean EUI" = mean(EUI), "T.Energy" = sum(T.Energy)/1000000000) %>% 
-  kable(format = "html", digits = 2)
+  kable(format = "html")
 
 SameStore_no_outliers %>% 
   group_by(Type) %>% 
