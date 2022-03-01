@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-# place <- "Home"
- place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 
 #Set proper working Dir 
@@ -446,16 +446,41 @@ SameStore_no_outliers %>%
 
 
 SameStore_no_outliers %>%
-  filter(Data == 2020) %>% 
+  filter(Data == 2019) %>% 
   group_by(Type) %>% 
   summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
   gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Type, factor_key = TRUE) %>% 
   left_join(CarbonFactors, by = "Energy") %>% 
+  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
   mutate(carbon_tCO2e = Utilities * Factor)  %>% 
   ggplot(aes(Type, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Carbon by Building Type using 2020 data only")
 
+
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  group_by(Data) %>% 
+  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Data, factor_key = TRUE) %>% 
+  left_join(CarbonFactors, by = "Energy") %>% 
+  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
+  mutate(carbon_tCO2e = Utilities * Factor)  %>% 
+  ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
+  geom_col(position = "stack")+
+  labs(title = "Office Carbon by year by Scope")
+
+SameStore_no_outliers %>% 
+  filter(Type == "Housing") %>% 
+  group_by(Data) %>% 
+  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Data, factor_key = TRUE) %>% 
+  left_join(CarbonFactors, by = "Energy") %>% 
+  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
+  mutate(carbon_tCO2e = Utilities * Factor)  %>% 
+  ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
+  geom_col(position = "stack")+
+  labs(title = "Office Carbon by year by Scope")
 
 
 ```
