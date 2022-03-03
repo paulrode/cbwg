@@ -465,18 +465,28 @@ SameStore_no_outliers %>%
 ggsave( plot = last_plot(), device = "jpeg",
        path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
-
+#Calculate emmisions limits per year 
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
   group_by(Data) %>% 
-  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+   summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
+  mutate("EmmisionsLimit" = 0.00846 * GSF) -> SameStore_no_outliersSummary
+OfficeEmmisions <- mean(SameStore_no_outliersSummary$EmmisionsLimit)  
+remove(SameStore_no_outliersSummary)
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  group_by(Data) %>% 
+  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
   gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Data, factor_key = TRUE) %>% 
   left_join(CarbonFactors, by = "Energy") %>% 
   mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
-  mutate(carbon_tCO2e = Utilities * Factor)  %>% 
+  mutate(carbon_tCO2e = Utilities * Factor)   %>% 
   ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
-  geom_col(position = "stack")+
-  labs(title = "Office Carbon by year by Scope") %>% 
+  geom_col(position = "stack") +
+  geom_hline(aes(yintercept = OfficeEmmisions)) +
+  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e")
+
+
   ggsave( plot = last_plot(), device = "jpeg",
        path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
@@ -490,7 +500,8 @@ SameStore_no_outliers %>%
   mutate(carbon_tCO2e = Utilities * Factor)  %>% 
   ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
-  labs(title = "Office Carbon by year by Scope") %>% 
+  labs(title = "Multifamily Housing Carbon by year by Scope", x = "Submission Year") 
+
   ggsave( plot = last_plot(), device = "jpeg",
        path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
