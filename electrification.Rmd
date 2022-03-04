@@ -205,28 +205,28 @@ L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
 
 #Create a vector containing unique same store properties by property id. 
 L84_2020 %>% 
-  inner_join(L84_2019, by = c("id")) %>% 
-  inner_join(L84_2018, by = c("id")) %>% 
-  inner_join(L84_2017, by = "id") %>% 
-  inner_join(L84_2016, by = "id") %>%
-  inner_join(L84_2015, by = "id") %>% 
-  select(id) %>% 
-  pull(id) -> AllYearsID
+  inner_join(L84_2019, by = "BBL") %>% 
+  inner_join(L84_2018, by = "BBL") %>% 
+  inner_join(L84_2017, by = "BBL") %>% 
+  inner_join(L84_2016, by = "BBL") %>%
+  inner_join(L84_2015, by = "BBL") %>% 
+  select(BBL) %>% 
+  pull(BBL) -> AllYearsID
 
 
 # create data frame of just same store properties 
 L84_2015 %>% 
-  filter(id %in% AllYearsID) -> temp15
+  filter(BBL %in% AllYearsID) -> temp15
 L84_2016 %>% 
-  filter(id %in% AllYearsID) -> temp16
+  filter(BBL %in% AllYearsID) -> temp16
 L84_2017 %>% 
-  filter(id %in% AllYearsID) -> temp17
+  filter(BBL %in% AllYearsID) -> temp17
 L84_2018 %>% 
-  filter(id %in% AllYearsID) -> temp18
+  filter(BBL %in% AllYearsID) -> temp18
 L84_2019 %>% 
-  filter(id %in% AllYearsID) -> temp19
+  filter(BBL %in% AllYearsID) -> temp19
 L84_2020 %>% 
-  filter(id %in% AllYearsID) -> temp20
+  filter(BBL %in% AllYearsID) -> temp20
 
 bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) -> SameStore
 
@@ -473,6 +473,28 @@ SameStore_no_outliers %>%
   mutate("EmmisionsLimit" = 0.00846 * GSF) -> SameStore_no_outliersSummary
 OfficeEmmisions <- mean(SameStore_no_outliersSummary$EmmisionsLimit)  
 remove(SameStore_no_outliersSummary)
+
+############################################################################
+############################################################################
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  select(Data, Elect, Steam, N.Gas, GSF) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, N.Gas, -Data, factor_key = TRUE) %>% 
+  left_join(CarbonFactors, by = "Energy") %>% 
+  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
+  mutate(carbon_tCO2e = Utilities * Factor) %>% 
+  filter(Data == 2020) %>% 
+  mutate("CUI" = carbon_tCO2e / GSF) %>% 
+  ggplot(aes(GSF, CUI)) +
+  geom_point() +
+  geom_hline(aes(yintercept = 0.00846)) +
+  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e") %>% 
+  ggsave( plot = last_plot(), device = "jpeg",
+       path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
+############################################################################
+############################################################################
+
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
   group_by(Data) %>% 
@@ -484,11 +506,12 @@ SameStore_no_outliers %>%
   ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack") +
   geom_hline(aes(yintercept = OfficeEmmisions)) +
-  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e")
-
-
+  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e") %>% 
   ggsave( plot = last_plot(), device = "jpeg",
        path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
+
+
 
 SameStore_no_outliers %>% 
   filter(Type == "Housing") %>% 
@@ -500,10 +523,11 @@ SameStore_no_outliers %>%
   mutate(carbon_tCO2e = Utilities * Factor)  %>% 
   ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
-  labs(title = "Multifamily Housing Carbon by year by Scope", x = "Submission Year") 
-
+  labs(title = "Multifamily Housing Carbon by year by Scope", x = "Submission Year") %>% 
   ggsave( plot = last_plot(), device = "jpeg",
        path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
+
 
 
 ```
