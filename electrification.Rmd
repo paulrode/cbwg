@@ -487,19 +487,42 @@ SameStore_no_outliers %>%
   mutate("CUI" = carbon_tCO2e / GSF) %>% 
   ggplot(aes(GSF, CUI)) +
   geom_point() +
-  geom_hline(aes(yintercept = 0.00846)) +
+  geom_hline(aes(yintercept = 0.00846, color = "blue")) +
+  geom_hline(aes(yintercept = 0.00453, color = "red")) +
   labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e") %>% 
+  ggsave( plot = last_plot(), device = "jpeg",
+       path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
+
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  select(Data, Elect, Steam, N.Gas, GSF) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, N.Gas, -Data, factor_key = TRUE) %>% 
+  left_join(CarbonFactors, by = "Energy") %>% 
+  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
+  mutate(carbon_tCO2e = Utilities * Factor) %>% 
+  filter(Data == 2020) %>% 
+  mutate("CUI" = carbon_tCO2e / GSF) %>% 
+  ggplot( aes(GSF, carbon_tCO2e)) +
+  geom_point() + 
+  geom_abline(aes(intercept = 0, slope = 0.00846)) +
+  geom_abline(aes(intercept = 0, slope = 0.00453, color = "red")) +
+  labs(title = "Office Carbon by GSF", x = "GSF", y = "tCO2e") %>% 
   ggsave( plot = last_plot(), device = "jpeg",
        path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
 ############################################################################
 ############################################################################
 
+
+
+
+
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
   group_by(Data) %>% 
-  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
-  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Data, factor_key = TRUE) %>% 
+  summarise("Elect" = sum(Elect), "N.Gas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, N.Gas, -Data, factor_key = TRUE) %>% 
   left_join(CarbonFactors, by = "Energy") %>% 
   mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
   mutate(carbon_tCO2e = Utilities * Factor)   %>% 
