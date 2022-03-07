@@ -304,14 +304,22 @@ remove(SameStore_no_outliersSummary)
 
 ```
 Discussion on data import.
+I imported years 2015 through 2020 from the NYC OpenData. To gain consistancy I filtered out sites that are not reprensented in all years based on thier associated Borough-Bloack-Lot (BBL) codes.  `r length(L84_2015$BBL)`
+
+
 Discussion on elimination of outliers and effect on types. 
 Changes to outliers strategy.
 Basic statistics of cleaned data 
 
 
 ```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
+#Basic stats on data files 
+summary(L84_2015)
+
+
 #Table of buildings in dataset 
 Types %>% 
+    select(Type, Number, GSF, T.Energy_MMbtu) %>% 
     mutate(across(where(is.numeric), signif, 3)) %>%  
     kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (MMBTU)" )) %>%     kable_styling(full_width = FALSE)
 
@@ -472,5 +480,13 @@ ggsave( plot = last_plot(), device = "jpeg",
 
 ```
 
+```{r Charts, echo=FALSE, message=FALSE, warning=FALSE}
 
+SameStore_no_outliers %>%
+  filter(Data == 2019 & Type == "Office") %>% 
+  select(Name,EUI,Built ) %>% 
+  ggplot( aes(EUI)) +
+  geom_density()
+  
 
+```
