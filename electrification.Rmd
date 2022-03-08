@@ -250,6 +250,13 @@ SameStore <- SameStore %>%
   relocate(EUI, .after = Address) 
 
 
+# add tags for small, med-sized and large properties. 
+
+SameStore <- SameStore %>% 
+  mutate("SizeBin" = cut(SameStore$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
+
+
 # Add carbon parameters dataframes 
 
 EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimits", col_names = TRUE, na = "NA",col_types = c("numeric", "text", "numeric", "text", "numeric") ) %>% drop_na()
@@ -285,6 +292,7 @@ Types_no_outliers <- SameStore_no_outliers %>%
   arrange(desc(T.Energy)) %>% 
   select(Type, Number, GSF, T.Energy)
 
+
 #Calculate emissions limits per year for Office 
 
 SameStore_no_outliers %>% 
@@ -316,9 +324,8 @@ Types %>%
   kable()
  
 
-
-
 #Table of buildings in dataset 
+
 Types %>% 
     select(Type, Number, GSF, T.Energy_MMbtu) %>% 
     mutate(across(where(is.numeric), signif, 3)) %>%  
