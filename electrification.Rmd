@@ -1,15 +1,14 @@
 ---
 title: "Commercial Building Electrification at Scale"
+ 
 output: 
-  html_document: default 
+  html_document:
+    code_folding: hide
 
 ---
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
 
-##########################################
-##########  Set up environment  ##########                              
-##########################################
 
 my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidytext","lubridate", "fable", "tsibbledata", "ggplot2", "forecast", "tseries", "rio", "zoo", "readxl", "tsibbledata", "knitr", "kableExtra", "formattable") 
 invisible( lapply(my_packages, require, character.only = TRUE))
@@ -32,11 +31,7 @@ if (!file.exists("data")) {
 
 rm(place, my_packages )
   
-
-
-################
-# Read in data #
-################
+# Read in data 
 
 LL97Text <- "https://www1.nyc.gov/assets/buildings/local_laws/ll97of2019.pdf"
 
@@ -190,7 +185,9 @@ L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) 
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2020
 
+
 # Remove duplicates 
+
 L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
   filter( T.Energy != 0 | GSF > 25000 ) %>%
@@ -198,12 +195,8 @@ L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   filter(BBL != 0) -> L84_2020
 
 
+#Create a vector containing unique same store properties by property id
 
-###########################
-# Join data sets together #
-###########################
-
-#Create a vector containing unique same store properties by property id. 
 L84_2020 %>% 
   inner_join(L84_2019, by = "BBL") %>% 
   inner_join(L84_2018, by = "BBL") %>% 
@@ -214,7 +207,8 @@ L84_2020 %>%
   pull(BBL) -> AllYearsID
 
 
-# create data frame of just same store properties 
+# create data frame of just samestore properties 
+
 L84_2015 %>% 
   filter(BBL %in% AllYearsID) -> temp15
 L84_2016 %>% 
@@ -228,111 +222,85 @@ L84_2019 %>%
 L84_2020 %>% 
   filter(BBL %in% AllYearsID) -> temp20
 
-bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) -> SameStore
+SameStore <- bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) 
 
 remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
 
-
-####################################################################
-# Combine Factor Levels to align with policy and published reports #
-####################################################################
+# Combine Factor Levels to align with policy and published reports 
 
 levels(SameStore$Type) <-list(
 "Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
-
-
 "Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
 "Courthouse", "Entreposage libre-service"), 
-
-
 "Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
-
-
 "Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
 "Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Social/Meeting Hall", 
 "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
-
-
 "HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
-
-
 "K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
-
-
 "Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
 
 
-#Code piece to narrow down Tyeps. 
-#SameStore %>% 
-#  mutate(Type_min = fct_lump(Type, n=5, w = GSF)) -> SameStore
+# Add EUI 
+
+SameStore <- SameStore %>% 
+  filter(GSF != 0) %>% 
+  mutate(EUI = T.Energy/GSF) %>%
+  relocate(EUI, .after = Address) 
 
 
-
-#########################
-# Add carbon parameters # 
-#########################
+# Add carbon parameters dataframes 
 
 EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimits", col_names = TRUE, na = "NA",col_types = c("numeric", "text", "numeric", "text", "numeric") ) %>% drop_na()
 
 CarbonFactors <- read_excel("data/LL97Parameters .xlsx", sheet = "CarbonFactors", col_names = TRUE, na = "NA",col_types = c("text", "numeric", "text", "numeric") ) %>% drop_na()
 
 
+#Summarize Types of buildings 
 
-#################################
-# Make Building Types dataframe #
-#################################
-
-#Rank by number of properties
-SameStore %>%
+Types <- SameStore %>%
   group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), GSF_1000xSF = sum(GSF), T.Energy_MMbtu = sum(T.Energy))  %>% 
-  mutate(GSF_1000xSF  = GSF_1000xSF/1000, T.Energy_MMbtu = T.Energy_MMbtu/1000) %>% 
-  arrange(desc(T.Energy_MMbtu)) -> Types
+  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy))  %>% 
+  mutate(GSF_1000xSF  = GSF/1000, T.Energy_MMbtu = T.Energy/1000) %>%
+  arrange(desc(T.Energy_MMbtu)) 
 
 
+#  Get rid of outliers and calculate error 
 
-####################
-# Make Types table #
-####################
+Q1 <- quantile(SameStore$EUI, .25) 
+Q3 <- quantile(SameStore$EUI, .75)
+IQR <- IQR(SameStore$EUI)
 
-SameStore %>% 
-  group_by(Type) %>% 
-  count(Type) %>% 
-  arrange(desc(n)) -> SameTypes
+SameStore_no_outliers <- subset(SameStore, SameStore$EUI> (Q1 - 1.5*IQR) &    SameStore$EUI< (Q3 + 1.5*IQR))
 
+remove(AllYearsID, IQR, Q1, Q3)
 
-###########
-# Add EUI #
-###########
+#Outlier Error 
+Types_no_outliers <- SameStore_no_outliers %>%
+  group_by(Type) %>%  
+  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy))  %>% 
+  mutate(Number_no_out = Number, GSF_1000xSF_no_out  = GSF/1000, T.Energy_MMBTU_no_out = T.Energy/1000) %>% arrange(desc(T.Energy_MMBTU_no_out)) %>% 
+  select(Type, Number_no_out, GSF_1000xSF_no_out, T.Energy_MMBTU_no_out) 
 
+Outlier_error <- inner_join(Types, Types_no_outliers, by = "Type") %>% 
+  mutate(N = (Number - Number_no_out)/Number, GSF = (GSF_1000xSF- GSF_1000xSF_no_out)/GSF_1000xSF, T.Energy = (T.Energy_MMbtu - T.Energy_MMBTU_no_out)/T.Energy_MMbtu ) %>% 
+  select(Type, Number, Number_no_out, N, GSF_1000xSF, GSF_1000xSF_no_out, GSF,T.Energy_MMbtu, T.Energy_MMBTU_no_out, T.Energy)
 
-SameStore %>% 
-  filter(GSF != 0) %>% 
-  mutate(EUI = T.Energy/GSF) %>%
-  relocate(EUI, .after = Address) -> SameStore
-
-```
-
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-#Table of buildings in dataset 
-Types %>% 
-    mutate(across(where(is.numeric), signif, 3)) %>%  
-    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (kBTU)" )) %>%     kable_styling(full_width = FALSE)
+Outlier_error[c("N", "GSF", "T.Energy")] <- round(Outlier_error[c("N", "GSF", "T.Energy")],2)
 
 
-      
-#Rank by number of properties
-SameStore %>%
-  count(Type) %>%
-  mutate(Type = fct_reorder(Type, n)) %>%
-  ggplot(aes(Type, n)) +
-  geom_col() +
-  labs(y = "Number of Buildings", x = "Use Types", title = "Counts of Buildings submitted for 2021 period") + 
-  coord_flip() 
+#Calculate emissions limits per year for Office 
+
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  group_by(Data) %>% 
+   summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
+  mutate("EmmisionsLimit" = 0.00846 * GSF) -> SameStore_no_outliersSummary
+OfficeEmmisions <- mean(SameStore_no_outliersSummary$EmmisionsLimit) 
+
+remove(SameStore_no_outliersSummary)
+
 
 # Show kGSF comparision of all Types. 
 Types %>% 
@@ -346,82 +314,44 @@ Types %>%
 
 
 ```
-Treatment of outliers. I sorted on EUI and chost IQR as the tool for this. Also it looks like housing and office are the most accurate. Hotels and Hospitals not so much which for hospitals is unsupprising. 
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-############################################
-#  Get rid of outliers and calculate error #
-############################################
-
-# Two approaches one using IQR other dumping "0"s Pick one or the others
-
-# 1 find Q1, Q3, and interquartile range for values in column A 
-Q1 <- quantile(SameStore$EUI, .25) 
-Q3 <- quantile(SameStore$EUI, .75)
-IQR <- IQR(SameStore$EUI)
-
-#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
-SameStore_no_outliers <- subset(SameStore, SameStore$EUI> (Q1 - 1.5*IQR) & SameStore$EUI< (Q3 + 1.5*IQR))
-
-remove(AllYearsID, IQR, Q1, Q3)
-
-# 2 get rid of 0's
-# SameStore %>% 
-#  filter(T.Energy != 0) %>% 
-#  filter(GSF != 0)-> SameStore_no_outliers
+Discussion on data import.
+I imported years 2015 through 2020 from the NYC OpenData. To gain consistancy I filtered out sites that are not reprensented in all years based on thier associated Borough-Bloack-Lot (BBL) codes.  `r length(L84_2015$BBL)`
 
 
-SameStore_no_outliers %>%
-  group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), GSF_1000xSF = sum(GSF), T.Energy_MMbtu = sum(T.Energy))  %>% 
-  mutate(Number_no_out = Number, GSF_no_out  = GSF_1000xSF/1000, T.Energy_no_out = T.Energy_MMbtu/1000) %>% arrange(desc(T.Energy_no_out)) %>% 
-  select(Type, Number_no_out, GSF_no_out, T.Energy_no_out) -> Types_no_outliers
+Discussion on elimination of outliers and effect on types. 
+Changes to outliers strategy.
+Basic statistics of cleaned data 
 
-inner_join(Types, Types_no_outliers, by = "Type") %>% 
-  mutate(N = (Number - Number_no_out)/Number, GSF = (GSF_1000xSF- GSF_no_out)/GSF_1000xSF, T.Energy = (T.Energy_MMbtu - T.Energy_no_out)/T.Energy_MMbtu ) %>% 
-  select(Type, Number, Number_no_out, N, GSF_1000xSF, GSF_no_out, GSF,T.Energy_MMbtu, T.Energy_no_out, T.Energy)  -> Outlier_error
 
-Outlier_error[c("N", "GSF", "T.Energy")] <- round(Outlier_error[c("N", "GSF", "T.Energy")],2)
+```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
+#Basic stats on data files 
+summary(L84_2015)
+
+
+#Table of buildings in dataset 
+Types %>% 
+    select(Type, Number, GSF, T.Energy_MMbtu) %>% 
+    mutate(across(where(is.numeric), signif, 3)) %>%  
+    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (MMBTU)" )) %>%     kable_styling(full_width = FALSE)
 
 
 
-##########
-# Charts #
-##########
+```
 
 
-SameStore_no_outliers %>% 
-  filter(Type == "Office") %>% 
-  ggplot(aes(x = Built, y = EUI, color = Data)) +
-  geom_point() +
-  geom_smooth() +
-  facet_grid(Data ~.) +
-  geom_vline(aes(xintercept = 1930), color = "red") +
-  labs( title = "Office EUI by build year and LL84 datasets")
 
-SameStore_no_outliers %>% 
-  filter(Type == "Office") %>% 
-  group_by(Built) %>% 
-  summarise("N.Build" = sum(No.Buildings), Data) %>% 
-  ggplot(aes(x = Built, y = N.Build)) +
-  geom_point() +
-  geom_smooth() +
-  geom_vline(aes(xintercept = 1942)) +
-  geom_vline(aes(xintercept = 1945)) +
-  geom_vline(aes(xintercept = 1930, color = "red"))
- 
 
-SameStore_no_outliers %>% 
-  group_by(Data) %>% 
-  summarise("No.Buildings" = sum(No.Buildings), "Mean EUI" = mean(EUI), "T.Energy" = sum(T.Energy)/1000000000) %>% 
-  kable(format = "html")
+```{r Charts, echo=FALSE, message=FALSE, warning=FALSE}
 
-SameStore_no_outliers %>% 
-  group_by(Type) %>% 
-  summarise("Total.Energy" = sum(T.Energy), "Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
-  kable(format = "html", digits = 2) 
 
+#Rank by number of properties
+SameStore %>%
+  count(Type) %>%
+  mutate(Type = fct_reorder(Type, n)) %>%
+  ggplot(aes(Type, n)) +
+  geom_col() +
+  labs(y = "Number of Buildings", x = "Use Types", title = "Counts of Buildings submitted for 2021 period") + 
+  coord_flip() 
 
 SameStore_no_outliers %>% 
   group_by(Type) %>% 
@@ -455,38 +385,54 @@ SameStore_no_outliers %>%
   ggsave( plot = last_plot(), device = "jpeg",
   path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  ggplot(aes(x = Built, y = EUI, color = Data)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(Data ~.) +
+  geom_vline(aes(xintercept = 1930), color = "red") +
+  labs( title = "Office EUI by build year and LL84 datasets")
+
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  group_by(Built) %>% 
+  summarise("N.Build" = sum(No.Buildings), Data) %>% 
+  ggplot(aes(x = Built, y = N.Build)) +
+  geom_point() +
+  geom_smooth() +
+  geom_vline(aes(xintercept = 1942)) +
+  geom_vline(aes(xintercept = 1945)) +
+  geom_vline(aes(xintercept = 1930, color = "red"))
 
 
-###################################################################################
-# put carbon in here... using join #
-###################################################################################
-
-
-SameStore_no_outliers %>%
-  filter(Data == 2019) %>% 
-  group_by(Type) %>% 
-  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
-  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Type, factor_key = TRUE) %>% 
+SameStore_no_outliers %>% 
+  filter(Type == "Office") %>% 
+  select(Data, Elect, Steam, N.Gas, GSF) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, N.Gas, -Data, factor_key = TRUE) %>% 
   left_join(CarbonFactors, by = "Energy") %>% 
   mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
+<<<<<<< HEAD
   mutate(carbon_tCO2e = Utilities * Factor)  %>% 
   ggplot(aes(Type, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Carbon by Building Type using 2019 data only") %>% 
   ggsave( plot = last_plot(), device = "jpeg",
   path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+=======
+  mutate(carbon_tCO2e = Utilities * Factor) %>% 
+  filter(Data == 2020) %>% 
+  mutate("CUI" = carbon_tCO2e / GSF) %>% 
+  ggplot(aes(GSF, CUI)) +
+  geom_point() +
+  geom_hline(aes(yintercept = 0.00846, color = "blue")) +
+  geom_hline(aes(yintercept = 0.00453, color = "red")) +
+  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e") %>% 
+  ggsave( plot = last_plot(), device = "jpeg",
+       path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+>>>>>>> 7c88861c1f108e9b2886d5cbfcb92ce7b5dd88e3
 
-#Calculate emmisions limits per year 
-SameStore_no_outliers %>% 
-  filter(Type == "Office") %>% 
-  group_by(Data) %>% 
-   summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
-  mutate("EmmisionsLimit" = 0.00846 * GSF) -> SameStore_no_outliersSummary
-OfficeEmmisions <- mean(SameStore_no_outliersSummary$EmmisionsLimit)  
-remove(SameStore_no_outliersSummary)
 
-############################################################################
-############################################################################
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
   select(Data, Elect, Steam, N.Gas, GSF) %>% 
@@ -496,21 +442,20 @@ SameStore_no_outliers %>%
   mutate(carbon_tCO2e = Utilities * Factor) %>% 
   filter(Data == 2020) %>% 
   mutate("CUI" = carbon_tCO2e / GSF) %>% 
-  ggplot(aes(GSF, CUI)) +
-  geom_point() +
-  geom_hline(aes(yintercept = 0.00846)) +
-  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e") %>% 
+  ggplot( aes(GSF, carbon_tCO2e)) +
+  geom_point() + 
+  geom_abline(aes(intercept = 0, slope = 0.00846)) +
+  geom_abline(aes(intercept = 0, slope = 0.00453, color = "red")) +
+  labs(title = "Office Carbon by GSF", x = "GSF", y = "tCO2e") %>% 
   ggsave( plot = last_plot(), device = "jpeg",
   path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
-############################################################################
-############################################################################
 
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
   group_by(Data) %>% 
-  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
-  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Data, factor_key = TRUE) %>% 
+  summarise("Elect" = sum(Elect), "N.Gas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, N.Gas, -Data, factor_key = TRUE) %>% 
   left_join(CarbonFactors, by = "Energy") %>% 
   mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
   mutate(carbon_tCO2e = Utilities * Factor)   %>% 
@@ -539,7 +484,29 @@ SameStore_no_outliers %>%
   path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
 
-
+SameStore_no_outliers %>%
+  filter(Data == 2019) %>% 
+  group_by(Type) %>% 
+  summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam)) %>% 
+  gather(key = "Energy", value = "Utilities", Elect, Steam, NGas, -Type, factor_key = TRUE) %>% 
+  left_join(CarbonFactors, by = "Energy") %>% 
+  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
+  mutate(carbon_tCO2e = Utilities * Factor)  %>% 
+  ggplot(aes(Type, carbon_tCO2e, fill = Energy)) +
+  geom_col(position = "stack")+
+  labs(title = "Carbon by Building Type using 2019 data only") %>% 
+ggsave( plot = last_plot(), device = "jpeg",
+       path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
 ```
 
+```{r Charts, echo=FALSE, message=FALSE, warning=FALSE}
+
+SameStore_no_outliers %>%
+  filter(Data == 2019 & Type == "Office") %>% 
+  select(Name,EUI,Built ) %>% 
+  ggplot( aes(EUI)) +
+  geom_density()
+  
+
+```
