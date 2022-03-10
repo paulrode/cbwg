@@ -14,8 +14,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-# place <- "Home"
- place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 
 #Set proper working Dir 
@@ -224,6 +224,14 @@ L84_2020 %>%
 
 SameStore <- bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) 
 
+# Add carbon parameters dataframes 
+
+EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimits", col_names = TRUE, na = "NA",col_types = c("numeric", "text", "numeric", "text", "numeric") ) %>% drop_na()
+
+CarbonFactors <- read_excel("data/LL97Parameters .xlsx", sheet = "CarbonFactors", col_names = TRUE, na = "NA",col_types = c("text", "numeric", "text", "numeric") ) %>% drop_na()
+
+
+
 remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
 
@@ -249,19 +257,12 @@ SameStore <- SameStore %>%
   mutate(EUI = T.Energy/GSF) %>%
   relocate(EUI, .after = Address) 
 
-
 # add tags for small, med-sized and large properties. 
 
 SameStore <- SameStore %>% 
   mutate("SizeBin" = cut(SameStore$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
-
-# Add carbon parameters dataframes 
-
-EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimits", col_names = TRUE, na = "NA",col_types = c("numeric", "text", "numeric", "text", "numeric") ) %>% drop_na()
-
-CarbonFactors <- read_excel("data/LL97Parameters .xlsx", sheet = "CarbonFactors", col_names = TRUE, na = "NA",col_types = c("text", "numeric", "text", "numeric") ) %>% drop_na()
 
 
 #Summarize Types of buildings 
@@ -357,8 +358,7 @@ SameStore_no_outliers %>%
   ggplot(aes(Type, Utilities, fill = Energy)) +
   geom_col(position = "stack") +
   labs(title = "Energy Use by Building Type"  )   
-  #ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
 
 SameStore_no_outliers %>%
   filter(Data == 2019) %>% 
@@ -368,8 +368,7 @@ SameStore_no_outliers %>%
   ggplot(aes(Type, Utilities, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Energy Use by Building Type using 2019 data only")  
- # ggsave( plot = last_plot(), device = "jpeg",
- #  path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+ 
 
 SameStore_no_outliers %>%
   filter(Data == 2020) %>% 
@@ -379,8 +378,7 @@ SameStore_no_outliers %>%
   ggplot(aes(Type, Utilities, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Energy Use by Building Type using 2020 data only")  
-  # ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+  
 
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
@@ -405,28 +403,16 @@ SameStore_no_outliers %>%
 
 SameStore_no_outliers %>% 
   filter(Type == "Office") %>% 
-  select(Data, Elect, Steam, N.Gas, GSF) %>% 
+  select(Data, Type, Elect, Steam, N.Gas, GSF) %>% 
   gather(key = "Energy", value = "Utilities", Elect, Steam, N.Gas, -Data, factor_key = TRUE) %>%
   left_join(CarbonFactors, by = "Energy")  %>% 
   mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
-  mutate(carbon_tCO2e = Utilities * Factor) 
-  ggplot(aes(Type, carbon_tCO2e, fill = Energy)) +
+  mutate(carbon_tCO2e = Utilities * Factor)  %>% 
+  ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Carbon by Building Type using 2019 data only") 
-  # ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+  
 
-
-  mutate(carbon_tCO2e = Utilities * Factor) %>% 
-  filter(Data == 2020) %>% 
-  mutate("CUI" = carbon_tCO2e / GSF) %>% 
-  ggplot(aes(GSF, CUI)) +
-  geom_point() +
-  geom_hline(aes(yintercept = 0.00846, color = "blue")) +
-  geom_hline(aes(yintercept = 0.00453, color = "red")) +
-  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e")  
-  # ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
 
 
@@ -444,8 +430,7 @@ SameStore_no_outliers %>%
   geom_abline(aes(intercept = 0, slope = 0.00846)) +
   geom_abline(aes(intercept = 0, slope = 0.00453, color = "red")) +
   labs(title = "Office Carbon by GSF", x = "GSF", y = "tCO2e") 
-  # ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
 
 
 SameStore_no_outliers %>% 
@@ -459,9 +444,8 @@ SameStore_no_outliers %>%
   ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack") +
   geom_hline(aes(yintercept = OfficeEmmisions)) +
-  labs(title = "Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e")  
-  # ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+  labs(title = "1 Office Carbon by year by Scope", x = "Submission Yeaer", y = "tCO2e")  
+
 
 
 
@@ -477,8 +461,7 @@ SameStore_no_outliers %>%
   ggplot(aes(Data, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Multifamily Housing Carbon by year by Scope", x = "Submission Year")  
-  # ggsave( plot = last_plot(), device = "jpeg",
-  # path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
 
 
 SameStore_no_outliers %>%
@@ -492,8 +475,7 @@ SameStore_no_outliers %>%
   ggplot(aes(Type, carbon_tCO2e, fill = Energy)) +
   geom_col(position = "stack")+
   labs(title = "Carbon by Building Type using 2019 data only")  
-# ggsave( plot = last_plot(), device = "jpeg",
-  #     path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
 
 ```
 
