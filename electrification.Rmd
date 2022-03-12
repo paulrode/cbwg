@@ -247,7 +247,9 @@ SameStore <- SameStore %>%
   mutate("O56_2024_tCO2e" = Oil56 * 	0.000075290) %>%
   mutate("O56_2030_tCO2e" = Oil56 * 	0.000075290) %>% 
   mutate("D_2024_tCO2e" = Diesel * 	0.000075290) %>%
-  mutate("D_2030_tCO2e" = Diesel * 	0.000075290) 
+  mutate("D_2030_tCO2e" = Diesel * 	0.000075290) %>% 
+  mutate("tCO2e_2024" = E_2024_tCO2e + G_2024_tCO2e + S_2024_tCO2e + O1_2024_tCO2e + O2_2024_tCO2e + O4_2024_tCO2e + O56_2024_tCO2e + D_2024_tCO2e) %>% 
+   relocate(tCO2e_2024, .after = T.Energy) 
 
 
 remove(temp15, temp16, temp17, temp18, temp19, temp20)
@@ -287,7 +289,7 @@ SameStore <- SameStore %>%
 
 Types <- SameStore %>%
   group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy))  %>% 
+  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy), "tCO2e_2024" = sum(tCO2e_2024))  %>% 
   mutate(GSF_1000xSF  = GSF/1000, T.Energy_MMbtu = T.Energy/1000) %>%
   arrange(desc(T.Energy_MMbtu)) 
 
@@ -307,7 +309,7 @@ remove(AllYearsID, IQR, Q1, Q3)
 
 Types_no_outliers <- SameStore_no_outliers %>%
   group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy))  %>% 
+  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy), "tCO2e_2024" = sum(tCO2e_2024))  %>% 
   arrange(desc(T.Energy)) %>% 
   select(Type, Number, GSF, T.Energy)
 
@@ -335,20 +337,13 @@ Basic statistics of cleaned data
 
 
 ```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
-#Basic stats on data files 
-
-Types %>% 
-  mutate(across(where(is.numeric), signif, 3)) %>% 
-  mutate(Type = fct_reorder(Type, GSF)) %>%
-  kable()
- 
 
 #Table of buildings in dataset 
 
 Types %>% 
-    select(Type, Number, GSF, T.Energy_MMbtu) %>% 
+    select(Type, Number, GSF, T.Energy_MMbtu, tCO2e_2024) %>% 
     mutate(across(where(is.numeric), signif, 3)) %>%  
-    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (MMBTU)" )) %>%     kable_styling(full_width = FALSE)
+    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (MMBTU)", "tCO2e")) %>%     kable_styling(full_width = FALSE)
 
 
 
