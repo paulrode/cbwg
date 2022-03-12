@@ -333,9 +333,10 @@ LL84Emissions_2019 <- sum(SameStore_no_outliers %>% filter(Data == 2019)%>% summ
 
 LL84Emissions_2019/CityEmissions_2019
 
+
 ```
 Discussion on data import.
-I imported years 2015 through 2020 from the NYC OpenData. To gain consistancy I filtered out sites that are not reprensented in all years based on thier associated Borough-Bloack-Lot (BBL) codes.  `r length(L84_2015$BBL)`
+I imported years 2015 through 2020 from the NYC OpenData. To gain consistancy I filtered out sites that are not reprensented in all years based on thier associated Borough-Bloack-Lot (BBL) codes.  `r length(L84_2019$BBL)`
 
 
 Discussion on elimination of outliers and effect on types. 
@@ -348,12 +349,22 @@ Basic statistics of cleaned data
 #Table of buildings in data set 
 
 Types_no_outliers %>% 
-    filter(SizeBin != Small) %>% 
-    select(Type, Number, GSF, tCO2e_2024) %>% 
+    select(SizeBin, Type, Number, GSF, tCO2e_2024) %>% 
+    group_by(SizeBin, Type) %>% 
+    summarise(Number = sum(Number), GSF = sum(GSF),MMtCO2e = sum(tCO2e_2024)/1000000) %>% 
     mutate(across(where(is.numeric), signif, 3)) %>%  
-    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "tCO2e")) %>%     
+    arrange(desc(MMtCO2e)) %>% 
+    kable(format = "html", digits = 6, col.names = c("Size Bin", "Use Type", "Quantity", "GSF", "tCO2e")) %>%     
   kable_styling(full_width = FALSE)
 
+Types_no_outliers %>% 
+    select(SizeBin, Type, Number, GSF, tCO2e_2024) %>% 
+    group_by(SizeBin, Type) %>% 
+    summarise(Number = sum(Number), GSF = sum(GSF),MMtCO2e = sum(tCO2e_2024)/1000000) %>% 
+    mutate(Type = fct_reorder(Type, MMtCO2e, sum)) %>%
+    mutate(across(where(is.numeric), signif, 3)) %>%  
+  ggplot( aes(Type, MMtCO2e, fill = SizeBin)) +
+  geom_col(position = "stack")
 
 
 ```
@@ -361,9 +372,25 @@ Types_no_outliers %>%
 
 
 
-```{r Charts, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Benchmark EMissions and Energy Trends, echo=FALSE, message=FALSE, warning=FALSE}
+
+BMEmission <- SameStore_no_outliers %>% 
+  select(Type, Data, T.Energy, tCO2e_2024) %>%
+  group_by(Data) %>% 
+  filter(Type == "Housing") %>% 
+  summarise(T.Energy_kBTU = sum(T.Energy), Emissions_tCO2e = sum(tCO2e_2024))
+
+BMEmission %>% 
+  mutate(T.Energy_kBTU = T.Energy_kBTU/BMEmission$T.Energy_kBTU[1]-1) %>% 
+  mutate(Emissions_tCO2e = Emissions_tCO2e/BMEmission$Emissions_tCO2e[1]-1) %>%
+  ggplot(aes(Data, T.Energy_kBTU)) +
+  geom_line(col = "purple") +
+  geom_line(aes(y = Emissions_tCO2e), col = "red")
 
 
+
+
+```
 #Rank by number of properties
 SameStore %>%
   count(Type) %>%
