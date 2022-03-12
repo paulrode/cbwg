@@ -230,23 +230,8 @@ EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimi
 
 CarbonFactors <- read_excel("data/LL97Parameters .xlsx", sheet = "CarbonFactors", col_names = TRUE, na = "NA",col_types = c("text", "numeric", "text", "numeric") ) %>% drop_na()
 
-SameStore2 <- SameStore %>% 
-  select(Name, BBL, Oil1, Oil2, Oil4, Oil56, Diesel, Steam, N.Gas, Elect) %>% 
-  gather(key = "Energy", value = "Utilities", Oil1, Oil2, Oil4, Oil56, Diesel, Steam, N.Gas, Elect, -Name,     -BBL, factor_key = TRUE) %>% 
-  left_join(CarbonFactors, by = "Energy")  %>% 
-  mutate_at(vars(matches("Factor")), ~ifelse(Energy == "Elect", 0.000288962/3.214, .)) %>% 
-  mutate(carbon_tCO2e = Utilities * Factor) %>%  
-  spread (Energy, Utilities)
-  
-```
 
-
-
-
-```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
-
-
-SameStore1 <- SameStore %>% 
+SameStore <- SameStore %>% 
   mutate("E_2024_tCO2e" = Elect * 	0.000288962/3.214) %>%
   mutate("E_2030_tCO2e" = Elect * 	0.000288962/3.214) %>%
   mutate("G_2024_tCO2e" = N.Gas * 	0.000053110) %>%
