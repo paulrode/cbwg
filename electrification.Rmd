@@ -255,6 +255,7 @@ SameStore <- SameStore %>%
 remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
 
+
 # Combine Factor Levels to align with policy and published reports 
 
 levels(SameStore$Type) <-list(
@@ -305,13 +306,12 @@ SameStore_no_outliers <- subset(SameStore, SameStore$EUI> (Q1 - 1.5*IQR) &    Sa
 remove(AllYearsID, IQR, Q1, Q3)
 
 
-#Summerize Types
+#Summarize Types
 
 Types_no_outliers <- SameStore_no_outliers %>%
   group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy), "tCO2e_2024" = sum(tCO2e_2024))  %>% 
-  arrange(desc(T.Energy)) %>% 
-  select(Type, Number, GSF, T.Energy)
+  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy), SizeBin, "tCO2e_2024" = sum(tCO2e_2024))  %>% 
+  arrange(desc(T.Energy)) 
 
 
 #Calculate emissions limits per year for Office 
@@ -326,6 +326,13 @@ OfficeEmmisions <- mean(SameStore_no_outliersSummary$EmmisionsLimit)
 remove(SameStore_no_outliersSummary)
 
 
+# Tabulate total mid and large emissions attributed to buildings per UG report
+CityEmissions_2019 <- 55100000
+
+LL84Emissions_2019 <- sum(SameStore_no_outliers %>% filter(Data == 2019)%>% summarise(tCO2e_2024))
+
+LL84Emissions_2019/CityEmissions_2019
+
 ```
 Discussion on data import.
 I imported years 2015 through 2020 from the NYC OpenData. To gain consistancy I filtered out sites that are not reprensented in all years based on thier associated Borough-Bloack-Lot (BBL) codes.  `r length(L84_2015$BBL)`
@@ -338,12 +345,14 @@ Basic statistics of cleaned data
 
 ```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
 
-#Table of buildings in dataset 
+#Table of buildings in data set 
 
-Types %>% 
-    select(Type, Number, GSF, T.Energy_MMbtu, tCO2e_2024) %>% 
+Types_no_outliers %>% 
+    filter(SizeBin != Small) %>% 
+    select(Type, Number, GSF, tCO2e_2024) %>% 
     mutate(across(where(is.numeric), signif, 3)) %>%  
-    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "Total Energy (MMBTU)", "tCO2e")) %>%     kable_styling(full_width = FALSE)
+    kable(format = "html", digits = 6, col.names = c("Use Type", "Quantity", "GSF", "tCO2e")) %>%     
+  kable_styling(full_width = FALSE)
 
 
 
