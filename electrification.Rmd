@@ -378,7 +378,7 @@ BMEmission <- SameStore_no_outliers %>%
   select(Type, Data, T.Energy, tCO2e_2024) %>%
   group_by(Data) %>% 
   filter(Type == "Housing") %>% 
-  summarise(T.Energy_kBTU = sum(T.Energy), Emissions_tCO2e = sum(tCO2e_2024))
+  summarise(T.Energy_kBTU = median(T.Energy), Emissions_tCO2e = median(tCO2e_2024))
 
 BMEmission %>% 
   mutate(T.Energy_kBTU = T.Energy_kBTU/BMEmission$T.Energy_kBTU[1]-1) %>% 
@@ -386,7 +386,6 @@ BMEmission %>%
   ggplot(aes(Data, T.Energy_kBTU)) +
   geom_line(col = "purple") +
   geom_line(aes(y = Emissions_tCO2e), col = "red")
-
 
 
 
