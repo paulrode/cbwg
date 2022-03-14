@@ -285,6 +285,10 @@ SameStore <- SameStore %>%
   relocate(SizeBin, .after = GSF)
 
 
+# Get rid of outliers
+
+SameStore_no_outliers <- SameStore %>% 
+  filter(EUI < 500 & EUI > 5)  
 
 #Summarize Types of buildings 
 
@@ -294,16 +298,6 @@ Types <- SameStore %>%
   mutate(GSF_1000xSF  = GSF/1000, T.Energy_MMbtu = T.Energy/1000) %>%
   arrange(desc(T.Energy_MMbtu)) 
 
-
-#  Get rid of outliers 
-
-Q1 <- quantile(SameStore$EUI, .25) 
-Q3 <- quantile(SameStore$EUI, .75)
-IQR <- IQR(SameStore$EUI)
-
-SameStore_no_outliers <- subset(SameStore, SameStore$EUI> (Q1 - 1.5*IQR) &    SameStore$EUI< (Q3 + 1.5*IQR))
-
-remove(AllYearsID, IQR, Q1, Q3)
 
 
 #Summarize Types
