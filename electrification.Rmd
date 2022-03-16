@@ -373,17 +373,26 @@ BMEmission <- SameStore_no_outliers %>%
   group_by(Type, Data) %>% 
   summarise( T.Energy_kBTU = sum(T.Energy), Emissions_tCO2e = sum(tCO2e_2024))
 
+BMEmission0 <- BMEmission %>% 
+  filter(Data == 2015) 
+
+BMEmission <- left_join(BMEmission, BMEmission0, by = "Type")
+
 par(mfcol = c(1,2))
 BMEmission %>% 
-  mutate(T.Energy_kBTU = T.Energy_kBTU/BMEmission$T.Energy_kBTU[1]-1) %>% 
-  mutate(Emissions_tCO2e = Emissions_tCO2e/BMEmission$Emissions_tCO2e[1]-1) %>%
+  mutate(T.Energy_kBTU = ( T.Energy_kBTU.x - T.Energy_kBTU.y )/T.Energy_kBTU.y )  %>% 
+  mutate(Emissions_tCO2e = ( Emissions_tCO2e.x - Emissions_tCO2e.y )/ Emissions_tCO2e.y ) %>% 
+  select(Type, Data.x, T.Energy_kBTU, Emissions_tCO2e) %>% 
+  rename( c("Data" = "Data.x")) %>% 
   ggplot(aes(Data, T.Energy_kBTU, col = Type)) +
   geom_line() +
   theme_classic()
 
 BMEmission %>% 
-  mutate(T.Energy_kBTU = T.Energy_kBTU/BMEmission$T.Energy_kBTU[1]-1) %>% 
-  mutate(Emissions_tCO2e = Emissions_tCO2e/BMEmission$Emissions_tCO2e[1]-1) %>%
+  mutate(T.Energy_kBTU = ( T.Energy_kBTU.x - T.Energy_kBTU.y )/T.Energy_kBTU.y )  %>% 
+  mutate(Emissions_tCO2e = ( Emissions_tCO2e.x - Emissions_tCO2e.y )/ Emissions_tCO2e.y ) %>% 
+  select(Type, Data.x, T.Energy_kBTU, Emissions_tCO2e) %>% 
+  rename( c("Data" = "Data.x")) %>% 
   ggplot(aes(Data, Emissions_tCO2e, col = Type)) +
   geom_line() +
   theme_classic()
