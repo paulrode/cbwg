@@ -38,14 +38,14 @@ LL97Text <- "https://www1.nyc.gov/assets/buildings/local_laws/ll97of2019.pdf"
 L84_2015 <- read_excel("data/2015_nyc_benchmarking.xlsx", sheet = "2015 Data Reported in 2016", col_names = TRUE, na = "NA", col_types = NULL )%>% mutate(Sheet = "Information and Metrics") %>%    mutate(Data = "2015") 
 
 L84_2015 %>%
-  select( "Record Number", "Property Name", "NYC Borough, Block and Lot (BBL)", "Street Number","Street Name" , "Zip Code", "Borough", "Property GFA - Self-reported (ft²)", "Primary Property Type - Self Selected", "Year Built", "Number of Buildings - Self-reported", "Fuel Oil #1 Use (kBtu)", "Fuel Oil #2 Use (kBtu)", "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "Water Use (All Water Sources) (kgal)", Data ) %>%
+  select( "Record Number", "Property Name", "NYC Borough, Block and Lot (BBL)", "Street Number","Street Name" , "Zip Code", "Borough", "Property GFA - Self-reported (ft²)", "Primary Property Type - Self Selected", "Year Built", "Number of Buildings - Self-reported", "Fuel Oil #1 Use (kBtu)", "Fuel Oil #2 Use (kBtu)", "Fuel Oil #4 Use (kBtu)", "Fuel Oil #5 & 6 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)", "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", "Water Use (All Water Sources) (kgal)","Total GHG Emissions (Metric Tons CO2e)", Data ) %>%
   data.frame() -> L84_2015
 
 # Feature engineering to make consistent with base data frame. 
   L84_2015$Address <- paste(L84_2015$Street.Number, L84_2015$Street.Name, sep = ' ')
   L84_2015[-(4:5) ] -> L84_2015
 
-  colnames(L84_2015) <- c( "id", "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data" , "Address")
+  colnames(L84_2015) <- c( "id", "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data" , "Address")
   
 L84_2015[c(8:19)] <- apply(L84_2015[c(8:19)], 2, as.numeric )
 L84_2015$Type <- as.factor(L84_2015$Type)
@@ -70,11 +70,11 @@ L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information a
 
 L84_2016 %>% 
   mutate(Data = "2016") %>%
-  select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `DOF Gross Floor Area`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings - Self-reported`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, Data ) %>%
+  select(`Property Id`, `Property Name`, `BBL - 10 digits`, `Address 1 (self-reported)`, `Postal Code`, Borough, `DOF Gross Floor Area`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings - Self-reported`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`,"Total GHG Emissions (Metric Tons CO2e)" , Data ) %>%
   data.frame() -> L84_2016
 
 
-colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data") 
+colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water","GHG", "Data") 
 
 L84_2016[c(1,5,7, 9:20)] <- apply(L84_2016[c(1,5, 7, 9:20)], 2, as.numeric )
 L84_2016$Type <- as.factor(L84_2016$Type)
@@ -95,10 +95,10 @@ L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
 L84_2017 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )
 
 L84_2017 %>% mutate(Data = "2017") %>% 
-  select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`,"Total GHG Emissions (Metric Tons CO2e)", `Data` ) %>%
   data.frame() -> L84_2017
 
-colnames(L84_2017) <- c("id",  "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+colnames(L84_2017) <- c("id",  "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
 L84_2017[is.na(L84_2017)] <-0
 
@@ -107,7 +107,6 @@ L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect ))
   arrange(id, T.Energy) -> L84_2017
 
 L84_2017[,c("Zip")] <- as.numeric(L84_2017[,c("Zip")])
-L84_2017[, "Data"] <- as.numeric(L84_2017[,"Data"])
 L84_2017$Type <- as.factor(L84_2017$Type)
 
 # Remove duplicates 
@@ -121,10 +120,10 @@ L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
 L84_2018 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2019__Data_for_Calendar_Year_2018_.csv", col_names = TRUE, na = "NA" )
 
 L84_2018 %>% mutate(Data = "2018") %>% 
-  select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  select( `Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, "Total GHG Emissions (Metric Tons CO2e)", `Data` ) %>%
   data.frame() -> L84_2018
 
-colnames(L84_2018) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+colnames(L84_2018) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
 L84_2018[9:20] <- apply(L84_2018[9:20] , 2, as.numeric)
 L84_2018$Type <- as.factor(L84_2018$Type)
@@ -146,10 +145,10 @@ L84_2018 %>% arrange(BBL, Address, T.Energy) %>%
 L84_2019 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2020__Data_for_Calendar_Year_2019_.csv", col_names = TRUE, na = "NA" )
 
 L84_2019 %>% mutate(Data = "2019") %>% 
-  select(`Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  select(`Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, "Total GHG Emissions (Metric Tons CO2e)", `Data` ) %>%
   data.frame() -> L84_2019
 
-colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
 L84_2019[9:20] <- apply(L84_2019[9:20], 2, as.numeric )
 L84_2019$Type <- as.factor(L84_2019$Type)
@@ -171,10 +170,10 @@ L84_2019 %>% arrange(BBL, Address, T.Energy) %>%
 L84_2020 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2021__Data_for_Calendar_Year_2020_.csv", col_names = TRUE, na = "NA" )
 
 L84_2020 %>% mutate(Data = "2020") %>% 
-  select(`Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, `Data` ) %>%
+  select(`Property Id`, `Property Name`, `NYC Borough, Block and Lot (BBL)`, `Address 1`, `Postcode`, `City`, `Property GFA - Self-Reported (ft²)`, `Primary Property Type - Self Selected`, `Year Built`, `Number of Buildings`,`Fuel Oil #1 Use (kBtu)`, `Fuel Oil #2 Use (kBtu)`, `Fuel Oil #4 Use (kBtu)`, `Fuel Oil #5 & 6 Use (kBtu)`, `Diesel #2 Use (kBtu)`, `District Steam Use (kBtu)`, `Natural Gas Use (kBtu)`, `Electricity Use - Grid Purchase (kBtu)`, `Water Use (All Water Sources) (kgal)`, "Total GHG Emissions (Metric Tons CO2e)", `Data` ) %>%
   data.frame() -> L84_2020
 
-colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "Data")
+colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
 L84_2020[9:20] <- apply(L84_2020[9:20], 2, as.numeric )
 L84_2020$Type <- as.factor(L84_2020$Type)
@@ -277,6 +276,7 @@ SameStore <- SameStore %>%
   filter(GSF != 0) %>% 
   mutate(EUI = T.Energy/GSF) %>%
   relocate(EUI, .after = Address) 
+SameStore$Data <- as.numeric(SameStore$Data)
 
 # add tags for small, med-sized and large properties. 
 
@@ -369,16 +369,16 @@ Types_no_outliers %>%
 ```{r Benchmark EMissions and Energy Trends, echo=FALSE, message=FALSE, warning=FALSE}
 
 BMEmission <- SameStore_no_outliers %>% 
-  select(Type, Data, T.Energy, tCO2e_2024) %>%
+  select(Type, Data, T.Energy, tCO2e_2024, GHG) %>%
   group_by(Type, Data) %>% 
-  summarise( T.Energy_kBTU = sum(T.Energy), Emissions_tCO2e = sum(tCO2e_2024))
+  summarise( T.Energy_kBTU = sum(T.Energy), Emissions_tCO2e = sum(tCO2e_2024), GHG = sum(GHG))
 
 BMEmission0 <- BMEmission %>% 
   filter(Data == 2015) 
 
 BMEmission <- left_join(BMEmission, BMEmission0, by = "Type")
 
-par(mfcol = c(1,2))
+par(mfcol = c(2,1))
 BMEmission %>% 
   mutate(T.Energy_kBTU = ( T.Energy_kBTU.x - T.Energy_kBTU.y )/T.Energy_kBTU.y )  %>% 
   mutate(Emissions_tCO2e = ( Emissions_tCO2e.x - Emissions_tCO2e.y )/ Emissions_tCO2e.y ) %>% 
@@ -394,6 +394,17 @@ BMEmission %>%
   select(Type, Data.x, T.Energy_kBTU, Emissions_tCO2e) %>% 
   rename( c("Data" = "Data.x")) %>% 
   ggplot(aes(Data, Emissions_tCO2e, col = Type)) +
+  geom_line() +
+  theme_classic()
+
+# Using carbon from Portfolio Manager
+BMEmission %>% 
+  mutate(T.Energy_kBTU = ( T.Energy_kBTU.x - T.Energy_kBTU.y )/T.Energy_kBTU.y )  %>% 
+  mutate(Emissions_tCO2e = ( Emissions_tCO2e.x - Emissions_tCO2e.y )/ Emissions_tCO2e.y ) %>%
+  mutate(GHG = ( GHG.x - GHG.y )/ GHG.y ) %>% 
+  select(Type, Data.x, T.Energy_kBTU, Emissions_tCO2e, GHG) %>% 
+  rename( c("Data" = "Data.x"))   %>%  
+  ggplot(aes(Data, GHG, col = Type)) +
   geom_line() +
   theme_classic()
 
