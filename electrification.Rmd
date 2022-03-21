@@ -185,7 +185,8 @@ L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) 
   arrange(id, T.Energy) -> L84_2020
 
 
-# Remove duplicates 
+# R
+emove duplicates 
 
 L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
@@ -193,6 +194,15 @@ L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2020
 
+
+# Deal with sites that have multiple BBLs 
+data.frame(str_length(L84_2020$BBL)) %>% 
+str(str_length(L84_2020$BBL))
+summary(str_length(L84_2020$BBL))
+
+data.frame(str_length(L84_2020$BBL)) %>% 
+ggplot(aes(str_length.L84_2020.BBL.)) +
+  geom_histogram()
 
 #Create a vector containing unique same store properties by property id
 
@@ -277,6 +287,9 @@ SameStore <- SameStore %>%
   mutate(EUI = T.Energy/GSF) %>%
   relocate(EUI, .after = Address) 
 SameStore$Data <- as.numeric(SameStore$Data)
+
+
+
 
 # add tags for small, med-sized and large properties. 
 
