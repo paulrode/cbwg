@@ -58,6 +58,7 @@ L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect ))
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2015
 
+
 L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
   filter( T.Energy != 0 | GSF > 25000 ) %>%
@@ -65,6 +66,11 @@ L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   filter(BBL != 0) -> L84_2015
 
 
+# Consolidate BBL's 
+L84_2015$BBL <- gsub("-", "", L84_2015$BBL)
+L84_2015$BBL <- gsub("/", "", L84_2015$BBL)
+L84_2015$BBL <- gsub(",", ";", L84_2015$BBL)
+strsplit(L84_2015$BBL, ';', fixed=T) -> L84_2015$BBL
 
 L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA", col_types = NULL) 
 
@@ -85,11 +91,18 @@ L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect ))
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2016
 
+
 L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
   filter( T.Energy != 0 | GSF > 25000) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2016
+
+# Consolidate BBL's 
+L84_2016$BBL <- gsub("-", "", L84_2016$BBL)
+L84_2016$BBL <- gsub("/", "", L84_2016$BBL)
+L84_2016$BBL <- gsub(",", ";", L84_2016$BBL)
+strsplit(L84_2016$BBL, ';', fixed=T) -> L84_2016$BBL
 
 
 L84_2017 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )
@@ -117,6 +130,13 @@ L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   filter(BBL != 0) -> L84_2017
 
 
+# Consolidate BBL's 
+L84_2017$BBL <- gsub("-", "", L84_2017$BBL)
+L84_2017$BBL <- gsub("/", "", L84_2017$BBL)
+L84_2017$BBL <- gsub(",", ";", L84_2017$BBL)
+strsplit(L84_2017$BBL, ';', fixed=T) -> L84_2017$BBL
+
+
 L84_2018 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2019__Data_for_Calendar_Year_2018_.csv", col_names = TRUE, na = "NA" )
 
 L84_2018 %>% mutate(Data = "2018") %>% 
@@ -134,6 +154,7 @@ L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect ))
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2018
 
+
 # Remove duplicates 
 L84_2018 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
@@ -141,6 +162,13 @@ L84_2018 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2018
 
+
+
+# Consolidate BBL's 
+L84_2018$BBL <- gsub("-", "", L84_2018$BBL)
+L84_2018$BBL <- gsub("/", "", L84_2018$BBL)
+L84_2018$BBL <- gsub(",", ";", L84_2018$BBL)
+strsplit(L84_2018$BBL, ';', fixed=T) -> L84_2018$BBL
 
 L84_2019 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2020__Data_for_Calendar_Year_2019_.csv", col_names = TRUE, na = "NA" )
 
@@ -159,6 +187,7 @@ L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect ))
   relocate(T.Energy, .after = Address) %>%
   arrange(id, T.Energy) -> L84_2019
 
+
 # Remove duplicates 
 L84_2019 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
@@ -166,6 +195,12 @@ L84_2019 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2019
 
+
+# Consolidate BBL's 
+L84_2019$BBL <- gsub("-", "", L84_2019$BBL)
+L84_2019$BBL <- gsub("/", "", L84_2019$BBL)
+L84_2019$BBL <- gsub(",", ";", L84_2019$BBL)
+strsplit(L84_2019$BBL, ';', fixed=T) -> L84_2019$BBL
 
 L84_2020 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2021__Data_for_Calendar_Year_2020_.csv", col_names = TRUE, na = "NA" )
 
@@ -185,14 +220,20 @@ L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) 
   arrange(id, T.Energy) -> L84_2020
 
 
-# R
-emove duplicates 
+# Remove duplicates 
 
 L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
   filter( T.Energy != 0 | GSF > 25000 ) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2020
+
+
+# Consolidate BBL's 
+L84_2020$BBL <- gsub("-", "", L84_2020$BBL)
+L84_2020$BBL <- gsub("/", "", L84_2020$BBL)
+L84_2020$BBL <- gsub(",", ";", L84_2020$BBL)
+strsplit(L84_2020$BBL, ';', fixed=T) -> L84_2020$BBL
 
 
 # Deal with sites that have multiple BBLs 
@@ -372,6 +413,15 @@ Types_no_outliers %>%
     mutate(across(where(is.numeric), signif, 3)) %>%  
   ggplot( aes(Type, MMtCO2e, fill = SizeBin)) +
   geom_col(position = "stack")
+
+
+
+L84_2019 %>% 
+    select( `Primary Property Type - Self Selected`) %>% 
+    group_by(`Primary Property Type - Self Selected`) %>% 
+    distinct() %>% 
+    kable(format = "html", digits = 6, col.names = "Use Type")
+
 
 
 ```
