@@ -274,6 +274,7 @@ L84_2020 %>%
 
 SameStore <- bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) 
 
+
 # Add carbon parameters to the dataframes 
 
 EmissionLimits <- read_excel("data/LL97Parameters .xlsx", sheet = "EmissionsLimits", col_names = TRUE, na = "NA",col_types = c("numeric", "text", "numeric", "text", "numeric") ) %>% drop_na()
@@ -414,6 +415,18 @@ Types_no_outliers %>%
   ggplot( aes(Type, MMtCO2e, fill = SizeBin)) +
   geom_col(position = "stack")
 
+########################################################################
+L84_2019 %>% 
+    mutate("SizeBin" = cut(L84_2019$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF) %>% 
+    select(SizeBin, Type, GSF, GHG) %>% 
+    group_by(SizeBin, Type) %>% 
+    summarise(GSF = sum(GSF),MMtCO2e = sum(GHG)/1000000) %>% 
+    mutate(Type = fct_reorder(Type, MMtCO2e, sum)) %>%
+    mutate(across(where(is.numeric), signif, 3)) %>%  
+  ggplot( aes(Type, MMtCO2e, fill = SizeBin)) +
+  geom_col(position = "stack")
+########################################################################
 
 
 L84_2019 %>% 
