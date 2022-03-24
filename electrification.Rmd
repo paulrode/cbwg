@@ -47,6 +47,17 @@ L84_2015 %>%
 
   colnames(L84_2015) <- c( "id", "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data" , "Address")
   
+  levels(L84_2015$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
+  
 L84_2015[c(8:19)] <- apply(L84_2015[c(8:19)], 2, as.numeric )
 L84_2015$Type <- as.factor(L84_2015$Type)
 L84_2015$BBL <- as.character(L84_2015$BBL)
@@ -72,6 +83,14 @@ L84_2015$BBL <- gsub("/", "", L84_2015$BBL)
 L84_2015$BBL <- gsub(",", ";", L84_2015$BBL)
 strsplit(L84_2015$BBL, ';', fixed=T) -> L84_2015$BBL
 
+
+# add tags for small, med-sized and large properties. 
+
+L84_2015 <- L84_2015 %>% 
+  mutate("SizeBin" = cut(L84_2015$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
+
+
 L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA", col_types = NULL) 
 
 L84_2016 %>% 
@@ -81,6 +100,17 @@ L84_2016 %>%
 
 
 colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water","GHG", "Data") 
+
+levels(L84_2016$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
 
 L84_2016[c(1,5,7, 9:20)] <- apply(L84_2016[c(1,5, 7, 9:20)], 2, as.numeric )
 L84_2016$Type <- as.factor(L84_2016$Type)
@@ -105,6 +135,13 @@ L84_2016$BBL <- gsub(",", ";", L84_2016$BBL)
 strsplit(L84_2016$BBL, ';', fixed=T) -> L84_2016$BBL
 
 
+# add tags for small, med-sized and large properties. 
+
+L84_2016 <- L84_2016 %>% 
+  mutate("SizeBin" = cut(L84_2016$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
+
+
 L84_2017 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )
 
 L84_2017 %>% mutate(Data = "2017") %>% 
@@ -112,6 +149,17 @@ L84_2017 %>% mutate(Data = "2017") %>%
   data.frame() -> L84_2017
 
 colnames(L84_2017) <- c("id",  "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
+
+levels(L84_2017$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
 
 L84_2017[is.na(L84_2017)] <-0
 
@@ -137,6 +185,13 @@ L84_2017$BBL <- gsub(",", ";", L84_2017$BBL)
 strsplit(L84_2017$BBL, ';', fixed=T) -> L84_2017$BBL
 
 
+# add tags for small, med-sized and large properties. 
+
+L84_2017 <- L84_2017 %>% 
+  mutate("SizeBin" = cut(L84_2017$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
+
+
 L84_2018 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2019__Data_for_Calendar_Year_2018_.csv", col_names = TRUE, na = "NA" )
 
 L84_2018 %>% mutate(Data = "2018") %>% 
@@ -144,6 +199,17 @@ L84_2018 %>% mutate(Data = "2018") %>%
   data.frame() -> L84_2018
 
 colnames(L84_2018) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
+
+levels(L84_2018$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
 
 L84_2018[9:20] <- apply(L84_2018[9:20] , 2, as.numeric)
 L84_2018$Type <- as.factor(L84_2018$Type)
@@ -170,6 +236,13 @@ L84_2018$BBL <- gsub("/", "", L84_2018$BBL)
 L84_2018$BBL <- gsub(",", ";", L84_2018$BBL)
 strsplit(L84_2018$BBL, ';', fixed=T) -> L84_2018$BBL
 
+
+# add tags for small, med-sized and large properties. 
+
+L84_2018 <- L84_2018 %>% 
+  mutate("SizeBin" = cut(L84_2018$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
+
 L84_2019 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2020__Data_for_Calendar_Year_2019_.csv", col_names = TRUE, na = "NA" )
 
 L84_2019 %>% mutate(Data = "2019") %>% 
@@ -177,6 +250,17 @@ L84_2019 %>% mutate(Data = "2019") %>%
   data.frame() -> L84_2019
 
 colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
+
+levels(L84_2019$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
 
 L84_2019[9:20] <- apply(L84_2019[9:20], 2, as.numeric )
 L84_2019$Type <- as.factor(L84_2019$Type)
@@ -202,6 +286,13 @@ L84_2019$BBL <- gsub("/", "", L84_2019$BBL)
 L84_2019$BBL <- gsub(",", ";", L84_2019$BBL)
 strsplit(L84_2019$BBL, ';', fixed=T) -> L84_2019$BBL
 
+
+# add tags for small, med-sized and large properties. 
+
+L84_2019 <- L84_2019 %>% 
+  mutate("SizeBin" = cut(L84_2019$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
+
 L84_2020 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2021__Data_for_Calendar_Year_2020_.csv", col_names = TRUE, na = "NA" )
 
 L84_2020 %>% mutate(Data = "2020") %>% 
@@ -209,6 +300,17 @@ L84_2020 %>% mutate(Data = "2020") %>%
   data.frame() -> L84_2020
 
 colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
+
+levels(L84_2020$Type) <-list(
+"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
+"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
+"Courthouse", "Entreposage libre-service"), 
+"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
+"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
+"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
+"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
+"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
+"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
 
 L84_2020[9:20] <- apply(L84_2020[9:20], 2, as.numeric )
 L84_2020$Type <- as.factor(L84_2020$Type)
@@ -235,15 +337,16 @@ L84_2020$BBL <- gsub("/", "", L84_2020$BBL)
 L84_2020$BBL <- gsub(",", ";", L84_2020$BBL)
 strsplit(L84_2020$BBL, ';', fixed=T) -> L84_2020$BBL
 
+# add tags for small, med-sized and large properties. 
 
-# Deal with sites that have multiple BBLs 
-data.frame(str_length(L84_2020$BBL)) %>% 
-str(str_length(L84_2020$BBL))
-summary(str_length(L84_2020$BBL))
+L84_2020 <- L84_2020 %>% 
+  mutate("SizeBin" = cut(L84_2020$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
+  relocate(SizeBin, .after = GSF)
 
-data.frame(str_length(L84_2020$BBL)) %>% 
-ggplot(aes(str_length.L84_2020.BBL.)) +
-  geom_histogram()
+
+
+
+
 
 #Create a vector containing unique same store properties by property id
 
@@ -307,20 +410,6 @@ remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
 
 
-# Combine Factor Levels to align with policy and published reports 
-
-levels(SameStore$Type) <-list(
-"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
-"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
-"Courthouse", "Entreposage libre-service"), 
-"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
-"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
-"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Social/Meeting Hall", 
-"Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
-"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
-"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
-"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
-
 
 # Add EUI
 
@@ -330,14 +419,6 @@ SameStore <- SameStore %>%
   relocate(EUI, .after = Address) 
 SameStore$Data <- as.numeric(SameStore$Data)
 
-
-
-
-# add tags for small, med-sized and large properties. 
-
-SameStore <- SameStore %>% 
-  mutate("SizeBin" = cut(SameStore$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
-  relocate(SizeBin, .after = GSF)
 
 
 # Get rid of outliers
@@ -394,6 +475,33 @@ Basic statistics of cleaned data
 
 
 ```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Look at sf of submission by type by year
+L84_2020 %>% 
+  select(Type, GSF) %>% 
+  group_by(Type) %>% 
+  summarise(GSF = sum(GSF)) %>% 
+  mutate(across(where(is.numeric), signif, 3)) %>%  
+  arrange(desc(GSF))  %>% 
+  kable(format = "html", digits = 6, col.names = c("Use Type", "GSF")) %>%     
+  kable_styling(full_width = FALSE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Table of buildings in data set 
 
