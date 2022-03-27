@@ -252,16 +252,13 @@ colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF",
 
 L84_2019$Type <-as.factor(L84_2019$Type)
 
-levels(L84_2019$Type) <-list(
-"Housing"=c("Multifamily Housing", "Senior Living Community", "Résidence pour personnes âgées", "Autre"),
-"Office" =c("Office", "Other", "Mixed Use Property", "Financial Office", "Data Center", 
-"Courthouse", "Entreposage libre-service"), 
-"Hospital" =c("Senior Care Community", "Medical Office", "Hospital (General Medical & Surgical)" , "Residential Care Facility", "Urgent Care/Clinic/Other Outpatient" , "Outpatient Rehabilitation/Physical Therapy" , "Ambulatory Surgical Center" , "Other - Specialty Hospital"), 
-"Retail" = c("Non-Refrigerated Warehouse", "Self-Storage Facility", "Retail Store", "Distribution Center", 
-"Parking", "Refrigerated Warehouse", "Strip Mall", "Other - Entertainment/Public Assembly", "Other - Mall", "Museum", "Indoor Arena", "Social/Meeting Hall", "Police Station", "Supermarket/Grocery Store", "Wholesale Club/Supercenter", "Enclosed Mall", "Fitness Center/Health Club/Gym", "Movie Theater", "Library", "Other - Services", "Performing Arts", "Food Sales","Automobile Dealership", "Other - Recreation", "Restaurant", "Other - Public Services", "Bowling Alley", "Personal Services (Health/Beauty, Dry Cleaning, etc.)", "Repair Services (Vehicle, Shoe, Locksmith, etc.)", "Lieu de culte", "Manufacturing/Industrial Plant", "Worship Facility",  "Social/Meeting Hall", "Courthouse", "Usine de fabrication/industrie"), 
-"HigherEd" = c("Laboratory", "College/University", "Adult Education", "Vocational School"), 
-"K-12" = c("K-12 School", "Other - Education", "Pre-school/Daycare"), 
-"Hotel" = c("Hotel", "Other - Lodging/Residential", "Immeuble à logements multiples", "Residence Hall/Dormitory"))
+
+
+
+
+
+
+
 
 L84_2019[9:20] <- apply(L84_2019[9:20], 2, as.numeric )
 L84_2019[is.na(L84_2019)] <-0
@@ -305,23 +302,23 @@ L84_2020 %>% mutate(Data = "2020") %>%
 
 colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
-L84_2020$Type <- as.factor(L84_2020$Type)
-
-
-L84_2020[9:20] <- apply(L84_2020[10:21], 2, as.numeric )
-
+L84_2020[10:21] <- apply(L84_2020[10:21], 2, as.numeric )
 L84_2020[is.na(L84_2020)] <-0
 
+L84_2020$Type <- as.factor(L84_2020$Type)
 L84_2020 <- L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
+  mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
+  relocate(EUI, .after = T.Energy) %>% 
   mutate("Type" = fct_lump(Type, n=6, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
-# Remove duplicates 
+# Remove duplicates and outliers 
 
 L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
   filter( T.Energy != 0 | GSF > 25000 ) %>%
+  filter(EUI < 500 & EUI > 5)  %>% 
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2020
 
@@ -344,8 +341,8 @@ L84_2020 %>%
   group_by(Type) %>% 
   summarise(T.Energy = sum(T.Energy), GSF = sum(GSF)) %>% 
   mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
-    arrange(desc(GSF))  %>% 
-  kable(format = "html", digits = 6, col.names = c("Use Type", "T.Energy", "GSF")) %>%     
+    arrange(desc(T.Energy))  %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "GSF")) %>%     
   kable_styling(full_width = FALSE)
 
 ```
