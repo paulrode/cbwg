@@ -44,10 +44,12 @@ L84_2015 %>%
 # Feature engineering to make consistent with base data frame. 
   L84_2015$Address <- paste(L84_2015$Street.Number, L84_2015$Street.Name, sep = ' ')
   L84_2015[-(4:5) ] -> L84_2015
+  L84_2015 <- L84_2015 %>% relocate(Address, .after = NYC.Borough..Block.and.Lot..BBL.) 
 
-  colnames(L84_2015) <- c( "id", "Name", "BBL", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data" , "Address")
-  
-L84_2015[10:21] <- apply(L84_2015[10:21], 2, as.numeric )
+  colnames(L84_2015) <- c( "id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data" )
+
+ 
+L84_2015[c(7,10:21)] <- apply(L84_2015[c(7,10:21)], 2, as.numeric )
 L84_2015[is.na(L84_2015)] <-0
 L84_2015$Type <- as.factor(L84_2015$Type)
 L84_2015 <- L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
@@ -65,24 +67,21 @@ L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2015
 
-L84_2015 %>%
-  mutate(Type2 = fct_lump_n(Type, n=6, w = GSF)) 
- 
- 
- # mutate(Type_min = fct_reorder(Type_min, n))
 
 # Consolidate BBL's 
 L84_2015$BBL <- gsub("-", "", L84_2015$BBL)
 L84_2015$BBL <- gsub("/", "", L84_2015$BBL)
 L84_2015$BBL <- gsub(",", ";", L84_2015$BBL)
 strsplit(L84_2015$BBL, ';', fixed=T) -> L84_2015$BBL
-
+L84_2015$BBL <- L84_2015$BBL %>% as.character(L84_2015$BBL) 
 
 # add tags for small, med-sized and large properties. 
 
 L84_2015 <- L84_2015 %>% 
   mutate("SizeBin" = cut(L84_2015$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
+
+L84_2015[c(7,12,14)] <- apply(L84_2015[c(7,12,14)], 2, as.numeric )
 
 
 L84_2016 <- read_excel("data/2016_nyc_benchmarking.xlsx", sheet = "Information and Metrics", col_names = TRUE, na = "NA", col_types = NULL) 
@@ -95,7 +94,8 @@ L84_2016 %>%
 
 colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water","GHG", "Data") 
 
-L84_2016[c(7,10:21)] <- apply(L84_2016[c(7,10:21)], 2, as.numeric )
+L84_2016[c(7,12:21)] <- apply(L84_2016[c(7,12:21)], 2, as.numeric )
+L84_2016$id <- as.numeric(L84_2016$id)
 L84_2016[is.na(L84_2016)] <-0
 L84_2016$Type <- as.factor(L84_2016$Type)
 L84_2016 <- L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
@@ -118,6 +118,7 @@ L84_2016$BBL <- gsub("-", "", L84_2016$BBL)
 L84_2016$BBL <- gsub("/", "", L84_2016$BBL)
 L84_2016$BBL <- gsub(",", ";", L84_2016$BBL)
 strsplit(L84_2016$BBL, ';', fixed=T) -> L84_2016$BBL
+L84_2016$BBL <- L84_2016$BBL %>% as.character(L84_2016$BBL) 
 
 
 # add tags for small, med-sized and large properties. 
@@ -126,6 +127,7 @@ L84_2016 <- L84_2016 %>%
   mutate("SizeBin" = cut(L84_2016$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
+L84_2016[c(7,12,14)] <- apply(L84_2016[c(7,12,14)], 2, as.numeric )
 
 L84_2017 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2018__Data_for_Calendar_Year_2017_.csv", col_names = TRUE, na = "NA" )
 
@@ -135,7 +137,7 @@ L84_2017 %>% mutate(Data = "2017") %>%
 
 colnames(L84_2017) <- c("id",  "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
-L84_2017[10:21] <- apply(L84_2017[10:21], 2, as.numeric )
+L84_2017[c(7,12:21)] <- apply(L84_2017[c(7,12:21)], 2, as.numeric )
 L84_2017[is.na(L84_2017)] <-0
 L84_2017$Type <- as.factor(L84_2017$Type)
 L84_2017 <- L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
@@ -158,7 +160,7 @@ L84_2017$BBL <- gsub("-", "", L84_2017$BBL)
 L84_2017$BBL <- gsub("/", "", L84_2017$BBL)
 L84_2017$BBL <- gsub(",", ";", L84_2017$BBL)
 strsplit(L84_2017$BBL, ';', fixed=T) -> L84_2017$BBL
-
+L84_2017$BBL <- L84_2017$BBL %>% as.character(L84_2017$BBL) 
 
 # add tags for small, med-sized and large properties. 
 
@@ -166,6 +168,7 @@ L84_2017 <- L84_2017 %>%
   mutate("SizeBin" = cut(L84_2017$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
+L84_2017[c(7,12,14)] <- apply(L84_2017[c(7,12,14)], 2, as.numeric )
 
 L84_2018 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2019__Data_for_Calendar_Year_2018_.csv", col_names = TRUE, na = "NA" )
 
@@ -176,7 +179,7 @@ L84_2018 %>% mutate(Data = "2018") %>%
 colnames(L84_2018) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
 
-L84_2018[10:21] <- apply(L84_2018[10:21], 2, as.numeric )
+L84_2018[c(7,11:21)] <- apply(L84_2018[c(7,11:21)], 2, as.numeric )
 L84_2018[is.na(L84_2018)] <-0
 L84_2018$Type <- as.factor(L84_2018$Type)
 L84_2018 <- L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
@@ -200,7 +203,7 @@ L84_2018$BBL <- gsub("-", "", L84_2018$BBL)
 L84_2018$BBL <- gsub("/", "", L84_2018$BBL)
 L84_2018$BBL <- gsub(",", ";", L84_2018$BBL)
 strsplit(L84_2018$BBL, ';', fixed=T) -> L84_2018$BBL
-
+L84_2018$BBL <- L84_2018$BBL %>% as.character(L84_2018$BBL) 
 
 # add tags for small, med-sized and large properties. 
 
@@ -208,7 +211,7 @@ L84_2018 <- L84_2018 %>%
   mutate("SizeBin" = cut(L84_2018$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
-
+L84_2018[c(7,12,14)] <- apply(L84_2018[c(7,12,14)], 2, as.numeric )
 
 
 
@@ -220,7 +223,7 @@ L84_2019 %>% mutate(Data = "2019") %>%
 
 colnames(L84_2019) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
-L84_2019[10:21] <- apply(L84_2019[10:21], 2, as.numeric )
+L84_2019[c(7,11:21)] <- apply(L84_2019[c(7,11:21)], 2, as.numeric )
 L84_2019[is.na(L84_2019)] <-0
 L84_2019$Type <- as.factor(L84_2019$Type)
 L84_2019 <- L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
@@ -244,13 +247,16 @@ L84_2019$BBL <- gsub("-", "", L84_2019$BBL)
 L84_2019$BBL <- gsub("/", "", L84_2019$BBL)
 L84_2019$BBL <- gsub(",", ";", L84_2019$BBL)
 strsplit(L84_2019$BBL, ';', fixed=T) -> L84_2019$BBL
-
+L84_2019$BBL <- L84_2019$BBL %>% as.character(L84_2019$BBL) 
 
 # add tags for small, med-sized and large properties. 
 
 L84_2019 <- L84_2019 %>% 
   mutate("SizeBin" = cut(L84_2019$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
+
+L84_2019[c(7,12,14)] <- apply(L84_2019[c(7,12,14)], 2, as.numeric )
+
 
 
 L84_2020 <- read_csv("data/Energy_and_Water_Data_Disclosure_for_Local_Law_84_2021__Data_for_Calendar_Year_2020_.csv", col_names = TRUE, na = "NA" )
@@ -261,14 +267,14 @@ L84_2020 %>% mutate(Data = "2020") %>%
 
 colnames(L84_2020) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data")
 
-L84_2020[10:21] <- apply(L84_2020[10:21], 2, as.numeric )
+L84_2020[11:21] <- apply(L84_2020[11:21], 2, as.numeric )
 L84_2020[is.na(L84_2020)] <-0
 L84_2020$Type <- as.factor(L84_2020$Type)
 L84_2020 <- L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=12, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=25, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 # Remove duplicates and outliers 
@@ -286,6 +292,8 @@ L84_2020$BBL <- gsub("-", "", L84_2020$BBL)
 L84_2020$BBL <- gsub("/", "", L84_2020$BBL)
 L84_2020$BBL <- gsub(",", ";", L84_2020$BBL)
 strsplit(L84_2020$BBL, ';', fixed=T) -> L84_2020$BBL
+L84_2020$BBL <- L84_2020$BBL %>% as.character(L84_2020$BBL) 
+
 
 # add tags for small, med-sized and large properties. 
 
@@ -293,8 +301,10 @@ L84_2020 <- L84_2020 %>%
   mutate("SizeBin" = cut(L84_2020$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
+L84_2020[c(7,12,14)] <- apply(L84_2020[c(7,12,14)], 2, as.numeric )
+
 # Look at sf of submission by type by year
-L84_2020 %>% 
+L84_2015 %>% 
   select(Type, T.Energy, GSF) %>% 
   group_by(Type) %>% 
   summarise(T.Energy = sum(T.Energy), GSF = sum(GSF)) %>% 
@@ -306,6 +316,8 @@ L84_2020 %>%
 ```
 
 
+
+```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
 
 #Create a vector containing unique same store properties by property id
 
@@ -334,8 +346,11 @@ L84_2019 %>%
 L84_2020 %>% 
   filter(BBL %in% AllYearsID) -> temp20
 
-SameStore <- bind_rows(temp15,temp16, temp17, temp18, temp19, temp20) 
+SameStore <- bind_rows(temp15, temp16, temp17,temp18, temp19, temp20) 
+                      
 
+
+```
 
 # Add carbon parameters to the dataframes 
 
