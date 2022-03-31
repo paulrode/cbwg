@@ -63,7 +63,10 @@ L84_2015 <- L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
 
 L84_2015 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  filter( T.Energy != 0 ) %>% 
+  filter(GSF > 25000) %>% 
+  filter(EUI <500 ) %>% 
+  filter(EUI > 5) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2015
 
@@ -109,7 +112,10 @@ L84_2016 <- L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
 
 L84_2016 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000) %>%
+  filter( T.Energy != 0 ) %>% 
+  filter(GSF > 25000) %>% 
+  filter(EUI <500 ) %>% 
+  filter(EUI > 5) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2016
 
@@ -150,7 +156,10 @@ L84_2017 <- L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
 # Remove duplicates 
 L84_2017 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  filter( T.Energy != 0 ) %>% 
+  filter(GSF > 25000) %>% 
+  filter(EUI <500 ) %>% 
+  filter(EUI > 5) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2017
 
@@ -193,7 +202,10 @@ L84_2018 <- L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
 # Remove duplicates 
 L84_2018 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  filter( T.Energy != 0 ) %>% 
+  filter(GSF > 25000) %>% 
+  filter(EUI <500 ) %>% 
+  filter(EUI > 5) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2018
 
@@ -237,7 +249,10 @@ L84_2019 <- L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
 # Remove duplicates 
 L84_2019 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000 ) %>%
+  filter( T.Energy != 0 ) %>% 
+  filter(GSF > 25000) %>% 
+  filter(EUI <500 ) %>% 
+  filter(EUI > 5) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2019
 
@@ -281,8 +296,10 @@ L84_2020 <- L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
 
 L84_2020 %>% arrange(BBL, Address, T.Energy) %>%
   distinct() %>%
-  filter( T.Energy != 0 | GSF > 25000 ) %>%
-  filter(EUI < 500 & EUI > 5)  %>% 
+  filter( T.Energy != 0 ) %>% 
+  filter(GSF > 25000) %>% 
+  filter(EUI <500 ) %>% 
+  filter(EUI > 5) %>%
   distinct(BBL, .keep_all = TRUE) %>%
   filter(BBL != 0) -> L84_2020
 
@@ -348,9 +365,9 @@ L84_2020 %>%
 
 SameStore <- bind_rows(temp15, temp16, temp17,temp18, temp19, temp20) 
                       
+remove(temp15, temp16, temp17, temp18, temp19, temp20)
 
 
-```
 
 # Add carbon parameters to the dataframes 
 
@@ -380,26 +397,6 @@ SameStore <- SameStore %>%
    relocate(tCO2e_2024, .after = T.Energy) 
 
 
-remove(temp15, temp16, temp17, temp18, temp19, temp20)
-
-
-
-
-# Add EUI
-
-SameStore <- SameStore %>% 
-  filter(GSF != 0) %>% 
-  mutate(EUI = T.Energy/GSF) %>%
-  relocate(EUI, .after = Address) 
-SameStore$Data <- as.numeric(SameStore$Data)
-
-
-
-# Get rid of outliers
-
-SameStore_no_outliers <- SameStore %>% 
-  filter(EUI < 500 & EUI > 5)  
-
 #Summarize Types of buildings 
 
 Types <- SameStore %>%
@@ -409,25 +406,14 @@ Types <- SameStore %>%
   arrange(desc(T.Energy_MMbtu)) 
 
 
-
-#Summarize Types
-
-Types_no_outliers <- SameStore_no_outliers %>%
-  group_by(Type) %>%  
-  summarise("Number" = sum(No.Buildings), "GSF" = sum(GSF), "T.Energy" = sum(T.Energy), SizeBin, "tCO2e_2024" = sum(tCO2e_2024))  %>% 
-  arrange(desc(T.Energy)) 
-
-
 #Calculate emissions limits per year for Office 
 
-SameStore_no_outliers %>% 
+SameStore %>% 
   filter(Type == "Office") %>% 
   group_by(Data) %>% 
    summarise("Elect" = sum(Elect), "NGas" = sum(N.Gas), "Steam" = sum(Steam), GSF = sum(GSF)) %>% 
-  mutate("EmmisionsLimit" = 0.00846 * GSF) -> SameStore_no_outliersSummary
-OfficeEmmisions <- mean(SameStore_no_outliersSummary$EmmisionsLimit) 
-
-remove(SameStore_no_outliersSummary)
+  mutate("EmmisionsLimit" = 0.00846 * GSF) -> Office_Emissions_Limits
+OfficeEmmisions <- mean(Office_Emissions_Limits$EmmisionsLimit) 
 
 
 # Tabulate total mid and large emissions attributed to buildings per UG report
@@ -474,7 +460,7 @@ L84_2020 %>%
 
 
 
-
+```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
 
 
 #Table of buildings in data set 
