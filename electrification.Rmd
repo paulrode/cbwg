@@ -334,6 +334,27 @@ L84_2015 %>%
 
 
 
+
+```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
+
+AllData <- SameStore <- bind_rows(L84_2015, L84_2016, L84_2017, L84_2018, L84_2019, L84_2020)
+
+AllData %>% 
+  mutate("Type" = fct_lump(Type, n=5, w = T.Energy)) %>% 
+  group_by(Data, Type) %>% 
+  summarise( "T.GSF" = sum(GSF)) %>% 
+  spread(key = Data, value = T.GSF)
+
+AllData %>% 
+  mutate("Type" = fct_lump(Type, n=5, w = T.Energy)) %>% 
+  group_by(Data, Type) %>% 
+  summarise( "No.Buildings" = sum(No.Buildings)) %>% 
+  spread(key = Data, value = No.Buildings)
+
+
+```
+
+
 ```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
 
 #Create a vector containing unique same store properties by property id
