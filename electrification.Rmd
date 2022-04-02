@@ -320,22 +320,6 @@ L84_2020 <- L84_2020 %>%
 
 L84_2020[c(7,12,14)] <- apply(L84_2020[c(7,12,14)], 2, as.numeric )
 
-# Look at sf of submission by type by year
-L84_2015 %>% 
-  select(Type, T.Energy, GSF) %>% 
-  group_by(Type) %>% 
-  summarise(T.Energy = sum(T.Energy), GSF = sum(GSF)) %>% 
-  mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
-    arrange(desc(T.Energy))  %>% 
-  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "GSF")) %>%     
-  kable_styling(full_width = FALSE)
-
-```
-
-
-
-
-```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
 
 AllData <- SameStore <- bind_rows(L84_2015, L84_2016, L84_2017, L84_2018, L84_2019, L84_2020)
 
@@ -353,6 +337,8 @@ AllData %>%
 
 
 ```
+
+
 
 
 ```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -458,6 +444,26 @@ Basic statistics of cleaned data
 ```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Look at sf of submission by type by year
+
+# Look at sf of submission by type by year
+L84_2015 %>% 
+  select(Type, T.Energy, GSF) %>% 
+  group_by(Type) %>% 
+  summarise(T.Energy = sum(T.Energy), GSF = sum(GSF)) %>% 
+  mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
+    arrange(desc(T.Energy))  %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "GSF")) %>%     
+  kable_styling(full_width = FALSE)
+
+L84_2016 %>% 
+  select(Type, T.Energy, GSF) %>% 
+  group_by(Type) %>% 
+  summarise(T.Energy = sum(T.Energy), GSF = sum(GSF)) %>% 
+  mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
+    arrange(desc(T.Energy))  %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "GSF")) %>%     
+  kable_styling(full_width = FALSE)
+
 L84_2020 %>% 
   select(Type, GSF) %>% 
   group_by(Type) %>% 
