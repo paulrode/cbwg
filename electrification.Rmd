@@ -318,8 +318,6 @@ L84_2020 <- L84_2020 %>%
   mutate("SizeBin" = cut(L84_2020$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
-L84_2020[c(7,12,14)] <- apply(L84_2020[c(7,12,14)], 2, as.numeric )
-
 
 AllData <- SameStore <- bind_rows(L84_2015, L84_2016, L84_2017, L84_2018, L84_2019, L84_2020)
 
@@ -327,13 +325,15 @@ AllData %>%
   mutate("Type" = fct_lump(Type, n=5, w = T.Energy)) %>% 
   group_by(Data, Type) %>% 
   summarise( "T.GSF" = sum(GSF)) %>% 
-  spread(key = Data, value = T.GSF)
+  spread(key = Data, value = T.GSF) %>% 
+  kable(format.args = list(big.mark = ','))
 
 AllData %>% 
   mutate("Type" = fct_lump(Type, n=5, w = T.Energy)) %>% 
   group_by(Data, Type) %>% 
   summarise( "No.Buildings" = sum(No.Buildings)) %>% 
-  spread(key = Data, value = No.Buildings)
+  spread(key = Data, value = No.Buildings) %>% 
+  kable()
 
 
 ```
