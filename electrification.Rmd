@@ -28,6 +28,9 @@ if (!file.exists("data")) {
   
 # Set up the "not in" operator for later use. 
   `%!in%` <- Negate(`%in%`)
+  
+# Set number of Types to include in analysis. 
+  "T" <- 20
 
 rm(place, my_packages )
   
@@ -56,7 +59,7 @@ L84_2015 <- L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=9, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 # Remove duplicates 
@@ -105,7 +108,7 @@ L84_2016 <- L84_2016 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=9, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 # Remove duplicates 
@@ -150,7 +153,7 @@ L84_2017 <- L84_2017 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=9, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 # Remove duplicates 
@@ -195,7 +198,7 @@ L84_2018 <- L84_2018 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=9, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 
@@ -242,7 +245,7 @@ L84_2019 <- L84_2019 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=9, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 
@@ -289,7 +292,7 @@ L84_2020 <- L84_2020 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Ga
   mutate(EUI = T.Energy/GSF) %>%
   relocate(T.Energy, .after = Address) %>% 
   relocate(EUI, .after = T.Energy) %>% 
-  mutate("Type" = fct_lump(Type, n=25, w = T.Energy))  %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy))  %>% 
   arrange(id, T.Energy) 
 
 # Remove duplicates and outliers 
@@ -322,18 +325,34 @@ L84_2020 <- L84_2020 %>%
 AllData <- SameStore <- bind_rows(L84_2015, L84_2016, L84_2017, L84_2018, L84_2019, L84_2020)
 
 AllData %>% 
-  mutate("Type" = fct_lump(Type, n=5, w = T.Energy)) %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy)) %>% 
   group_by(Data, Type) %>% 
   summarise( "T.GSF" = sum(GSF)) %>% 
   spread(key = Data, value = T.GSF) %>% 
-  kable(format.args = list(big.mark = ','))
+  kable(digits = 3, 
+        col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
+        align = "lcccccc", 
+        caption = "<center><strong><strong>GSF of Use Types by Submission Year</strong></strong></center>",
+        label = "Table 1", 
+        format.args = list(decimal.mark = ".", big.mark = ","),
+        escape = FALSE) %>% 
+  kable_styling()
 
 AllData %>% 
-  mutate("Type" = fct_lump(Type, n=5, w = T.Energy)) %>% 
+  mutate("Type" = fct_lump(Type, n=T, w = T.Energy)) %>% 
   group_by(Data, Type) %>% 
   summarise( "No.Buildings" = sum(No.Buildings)) %>% 
   spread(key = Data, value = No.Buildings) %>% 
-  kable()
+  kable(digits = 3, 
+        col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
+        align = "lcccccc", 
+        caption = "<center><strong><strong>Number of Use Types by Submission Year</strong></strong></center>",
+        label = "Table 1", 
+        format.args = list(decimal.mark = ".", big.mark = ","),
+        escape = FALSE) %>% 
+  kable_styling()
+
+
 
 
 ```
