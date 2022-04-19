@@ -484,10 +484,12 @@ Basic statistics of cleaned data
 L84_2015 %>% 
   select(Type, T.Energy, GSF) %>% 
   group_by(Type) %>% 
-  summarise(T.Energy = sum(T.Energy), GSF = sum(GSF)) %>% 
+  summarise(EnergyS = sum(T.Energy), GSF = sum(GSF)) %>% 
+  mutate("EnergyP" = EnergyS/sum(EnergyS)) %>% 
   mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
-    arrange(desc(T.Energy))  %>% 
-  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "GSF")) %>%     
+    arrange(desc(EnergyP))  %>% 
+    select(Type, EnergyS, EnergyP, GSF) %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%", "GSF")) %>%     
   kable_styling(full_width = FALSE)
 
 L84_2016 %>% 
