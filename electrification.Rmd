@@ -324,6 +324,10 @@ L84_2020 <- L84_2020 %>%
 
 AllData <- SameStore <- bind_rows(L84_2015, L84_2016, L84_2017, L84_2018, L84_2019, L84_2020)
 
+
+
+#GSF of Buildings in each use Type by Submission Year
+
 AllData %>% 
   mutate("Type" = fct_lump(Type, n=10, w = T.Energy)) %>% 
   group_by(Data, Type) %>% 
@@ -332,11 +336,21 @@ AllData %>%
   kable(digits = 3, 
         col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
         align = "lcccccc", 
-        caption = "<center><strong><strong>GSF of Use Types by Submission Year</strong></strong></center>",
+        caption = "<center><strong><strong>GSF of Buildings in each use Type by Submission Year</strong></strong></center>",
         label = "Table 1", 
         format.args = list(decimal.mark = ".", big.mark = ","),
         escape = FALSE) %>% 
   kable_styling()
+
+AllData %>% 
+  mutate("Type" = fct_lump(Type, n=10, w = T.Energy)) %>% 
+  group_by(Data, Type) %>% 
+  summarise( "T.GSF" = sum(GSF)) %>% 
+  spread(key = Data, value = T.GSF) 
+
+
+
+# Number of Buildings in the top use Types by Submission
 
 AllData %>% 
   mutate("Type" = fct_lump(Type, n=10, w = T.Energy)) %>% 
@@ -346,11 +360,15 @@ AllData %>%
   kable(digits = 3, 
         col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
         align = "lcccccc", 
-        caption = "<center><strong><strong>Number of Use Types by Submission Year</strong></strong></center>",
+        caption = "<center><strong><strong>Number of Buildings in the top use Types by Submission Year</strong></strong></center>",
         label = "Table 1", 
         format.args = list(decimal.mark = ".", big.mark = ","),
         escape = FALSE) %>% 
   kable_styling()
+
+
+
+# Number of Buildings in each Use Type by Submission
 
 AllData %>% 
   group_by(Data, Type) %>% 
@@ -359,24 +377,24 @@ AllData %>%
   kable(digits = 3, 
         col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
         align = "lcccccc", 
-        caption = "<center><strong><strong>Number of Use Types by Submission Year</strong></strong></center>",
+        caption = "<center><strong><strong>Number of Buildings in each Use Type by Submission Year</strong></strong></center>",
         label = "Table 1", 
         format.args = list(decimal.mark = ".", big.mark = ","),
         escape = FALSE) %>% 
   kable_styling()
 
+
+
+
+#Number of Types in each submission year
+
 data.frame("Description" = "Types", 'Yr 2015' = length(levels( L84_2015$Type )), 'Yr 2016'= length(levels(L84_2016$Type)), 'Yr 2017' = length(levels( L84_2017$Type )), 'Yr 2018'= length(levels(L84_2018$Type)),'Yr 2019' = length(levels( L84_2019$Type )), 'Yr 2020'= length(levels(L84_2020$Type))) %>% 
   kable() %>% 
-  kable_styling()
-
-
-
-```
+  kable_styling() 
 
 
 
 
-```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
 
 #Create a vector containing unique same store properties by property id
 
