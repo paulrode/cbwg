@@ -445,7 +445,7 @@ Basic statistics of cleaned data
 #TABLE Number of Types in each submission year
 
 data.frame("Description" = "Types", 'Yr 2015' = length(levels( L84_2015$Type )), 'Yr 2016'= length(levels(L84_2016$Type)), 'Yr 2017' = length(levels( L84_2017$Type )), 'Yr 2018'= length(levels(L84_2018$Type)),'Yr 2019' = length(levels( L84_2019$Type )), 'Yr 2020'= length(levels(L84_2020$Type))) %>% 
-  kable() %>% 
+  kable( caption = "<center><strong><strong>Number of use types in each submission</strong></strong></center>") %>% 
   kable_styling() 
 
 
@@ -515,11 +515,11 @@ L84_2015 %>%
   select(Type, T.Energy, GSF) %>% 
   group_by(Type) %>% 
   summarise(EnergyS = sum(T.Energy), GSF = sum(GSF)) %>% 
-  mutate("EnergyP" = EnergyS/sum(EnergyS)) %>% 
+  mutate("EnergyP" = EnergyS/sum(EnergyS)*100) %>% 
   mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
     arrange(desc(EnergyP))  %>% 
     select(Type, EnergyS, EnergyP, GSF) %>% 
-  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%", "GSF")) %>%     
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%  of Energy", "GSF")) %>%     
   kable_styling(full_width = FALSE)
 
 L84_2016 %>% 
