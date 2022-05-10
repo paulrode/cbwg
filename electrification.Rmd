@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
- place <- "Home"
-# place <-  "work"
+# place <- "Home"
+ place <-  "work"
 
 
 #Set proper working Dir 
@@ -36,7 +36,7 @@ if (!file.exists("data")) {
 rm(place, my_packages )
 ```
 
-kkk
+
 
 
 ```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -498,16 +498,17 @@ AllData %>%
 
 # Look at sf of submission by type by year
 
-# Look at sf of submission by type by year
-L84_2015 %>% 
+# Look at sf of submission by type by year with EUI
+L84_2019 %>% 
   select(Type, T.Energy, GSF) %>% 
   group_by(Type) %>% 
   summarise(EnergyS = sum(T.Energy), GSF = sum(GSF)) %>% 
   mutate("EnergyP" = EnergyS/sum(EnergyS)*100) %>% 
+  mutate("EUI" = EnergyS / GSF) %>% 
   mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
     arrange(desc(EnergyP))  %>% 
-    select(Type, EnergyS, EnergyP, GSF) %>% 
-  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%  of Energy", "GSF")) %>%     
+    select(Type, EnergyS, EnergyP, GSF, EUI) %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%  of Energy", "GSF", "EUI")) %>%     
   kable_styling(full_width = FALSE)
 
 L84_2016 %>% 
@@ -526,6 +527,18 @@ L84_2020 %>%
   mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
     arrange(desc(GSF))  %>% 
   kable(format = "html", digits = 6, col.names = c("Use Type", "GSF")) %>%     
+  kable_styling(full_width = FALSE)
+
+# Look carbon and EUI
+L84_2019 %>% 
+  select(Type, GHG, GSF) %>% 
+  group_by(Type) %>% 
+  summarise(GHG_S = sum(GHG), GSF = sum(GSF)) %>% 
+  mutate("CUI" = GHG_S / GSF * 1000) %>% 
+  mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
+    arrange(desc(GSF))  %>% 
+    select(Type, GSF, CUI) %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "GSF", "CUI/1000")) %>%     
   kable_styling(full_width = FALSE)
 
 ```
