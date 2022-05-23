@@ -373,22 +373,39 @@ CarbonFactors <- read_excel("data/LL97Parameters .xlsx", sheet = "CarbonFactors"
 SameStore <- SameStore %>% 
   mutate("E_2024_tCO2e" = Elect * 	0.000288962/3.214) %>%
   mutate("E_2030_tCO2e" = Elect * 	0.000288962/3.214) %>%
+  mutate("E_2035_tCO2e" = Elect * 	0.000288962/3.214) %>%
   mutate("G_2024_tCO2e" = N.Gas * 	0.000053110) %>%
   mutate("G_2030_tCO2e" = N.Gas * 	0.000053110) %>%
+  mutate("G_2035_tCO2e" = N.Gas * 	0.000053110) %>%
   mutate("S_2024_tCO2e" = Steam * 	0.000044930) %>%
   mutate("S_2030_tCO2e" = Steam * 	0.000044930) %>%
+  mutate("S_2035_tCO2e" = Steam * 	0.000044930) %>%
   mutate("O1_2024_tCO2e" = Oil1 * 	0.000074210) %>%
   mutate("O1_2030_tCO2e" = Oil1 * 	0.000074210) %>% 
+  mutate("O1_2035_tCO2e" = Oil1 * 	0.000074210) %>% 
   mutate("O2_2024_tCO2e" = Oil2 * 	0.000074210) %>%
   mutate("O2_2030_tCO2e" = Oil2 * 	0.000074210) %>% 
+  mutate("O2_2035_tCO2e" = Oil2 * 	0.000074210) %>%
   mutate("O4_2024_tCO2e" = Oil4 * 	0.000075290) %>%
-  mutate("O4_2030_tCO2e" = Oil4 * 	0.000075290) %>% 
+  mutate("O4_2030_tCO2e" = Oil4 * 	0.000075290) %>%
+  mutate("O4_2035_tCO2e" = Oil4 * 	0.000075290) %>% 
   mutate("O56_2024_tCO2e" = Oil56 * 	0.000075290) %>%
   mutate("O56_2030_tCO2e" = Oil56 * 	0.000075290) %>% 
+  mutate("O56_2035_tCO2e" = Oil56 * 	0.000075290) %>%
   mutate("D_2024_tCO2e" = Diesel * 	0.000075290) %>%
-  mutate("D_2030_tCO2e" = Diesel * 	0.000075290) %>% 
+  mutate("D_2030_tCO2e" = Diesel * 	0.000075290) %>%
+  mutate("D_2035_tCO2e" = Diesel * 	0.000075290) %>%
   mutate("tCO2e_2024" = E_2024_tCO2e + G_2024_tCO2e + S_2024_tCO2e + O1_2024_tCO2e + O2_2024_tCO2e + O4_2024_tCO2e + O56_2024_tCO2e + D_2024_tCO2e) %>% 
-   relocate(tCO2e_2024, .after = T.Energy) 
+    mutate("tCO2e_2030" = E_2030_tCO2e + G_2030_tCO2e + S_2030_tCO2e + O1_2030_tCO2e + O2_2030_tCO2e + O4_2030_tCO2e + O56_2030_tCO2e + D_2030_tCO2e) %>% 
+      mutate("tCO2e_2035" = E_2035_tCO2e + G_2035_tCO2e + S_2035_tCO2e + O1_2035_tCO2e + O2_2035_tCO2e + O4_2035_tCO2e + O56_2035_tCO2e + D_2035_tCO2e) %>%
+  mutate("Limit_2024" = 0.00846 * GSF) %>% 
+  mutate("Limit_2030" = 0.00453 * GSF) %>%
+  mutate("Limit_2035" = 0.00140 * GSF) %>% 
+  mutate("penality_2024" = 268 * ( tCO2e_2024 - Limit_2024 )) %>% 
+  mutate("penality_2030" = 268 * ( tCO2e_2030 - Limit_2030 )) %>%
+  mutate("penality_2035" = 268 * ( tCO2e_2035 - Limit_2035 )) %>%
+  relocate(tCO2e_2024, .after = T.Energy) %>% 
+  relocate(penality_2024, .after = T.Energy) 
 
 
 #Summarize Types of buildings 
@@ -540,6 +557,22 @@ L84_2019 %>%
     select(Type, GSF, CUI) %>% 
   kable(format = "html", digits = 9, col.names = c("Use Type", "GSF", "CUI/1000")) %>%     
   kable_styling(full_width = FALSE)
+
+
+
+# Distribution of office energy use intensities using 2019
+
+L84_2019 %>% 
+  filter(Type == "Office") %>% 
+  select(Name, EUI, SizeBin) -> OfficeEUI
+
+p <- ggplot(OfficeEUI, aes(x=EUI)) +
+  geom_density() +
+  geom_vline(aes(xintercept=mean(EUI)), 
+             color="blue", linetype="dashed", size=1)
+
+p
+
 
 ```
 
