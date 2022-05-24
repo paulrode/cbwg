@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-# place <- "Home"
- place <-  "work"
+ place <- "Home"
+# place <-  "work"
 
 
 #Set proper working Dir 
@@ -59,7 +59,7 @@ L84_2015 %>%
   colnames(L84_2015) <- c( "id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water", "GHG", "Data" )
 
  
-L84_2015[c(7,10:21)] <- apply(L84_2015[c(7,10:21)], 2, as.numeric )
+L84_2015[c(7,9:21)] <- apply(L84_2015[c(7,9:21)], 2, as.numeric )
 L84_2015[is.na(L84_2015)] <-0
 L84_2015$Type <- as.factor(L84_2015$Type)
 L84_2015 <- L84_2015 %>% mutate("T.Energy" = (Oil2 + Oil4 + Oil56 + Steam + N.Gas + Elect)) %>%
@@ -94,6 +94,11 @@ L84_2015 <- L84_2015 %>%
   mutate("SizeBin" = cut(L84_2015$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
+L84_2015$Built <- as.numeric(L84_2015$Built)
+L84_2015 <- L84_2015 %>% 
+  mutate("AgeBin" = cut(L84_2015$Built, breaks = c(0, 1917, 1942, 1970,1990, 2022), include.lowest = TRUE, labels = c("PreWar", "PreModern", "Modern", "PostModern", "Current"), right = TRUE)) %>% 
+  relocate(AgeBin, .after = Built)
+
 L84_2015[c(7,12,14)] <- apply(L84_2015[c(7,12,14)], 2, as.numeric )
 
 
@@ -107,7 +112,7 @@ L84_2016 %>%
 
 colnames(L84_2016) <- c("id", "Name", "BBL", "Address", "Zip", "Boruugh", "GSF", "Type", "Built", "No.Buildings", "Oil1", "Oil2", "Oil4", "Oil56", "Diesel", "Steam", "N.Gas", "Elect", "Water","GHG", "Data") 
 
-L84_2016[c(7,12:21)] <- apply(L84_2016[c(7,12:21)], 2, as.numeric )
+L84_2016[c(7,11:21)] <- apply(L84_2016[c(7,11:21)], 2, as.numeric )
 L84_2016$id <- as.numeric(L84_2016$id)
 L84_2016[is.na(L84_2016)] <-0
 L84_2016$Type <- as.factor(L84_2016$Type)
@@ -142,6 +147,11 @@ L84_2016$BBL <- L84_2016$BBL %>% as.character(L84_2016$BBL)
 L84_2016 <- L84_2016 %>% 
   mutate("SizeBin" = cut(L84_2016$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
+
+L84_2016$Built <- as.numeric(L84_2016$Built)
+L84_2016 <- L84_2016 %>% 
+  mutate("AgeBin" = cut(L84_2016$Built, breaks = c(0, 1917, 1942, 1970,1990, 2022), include.lowest = TRUE, labels = c("PreWar", "PreModern", "Modern", "PostModern", "Current"), right = TRUE)) %>% 
+  relocate(AgeBin, .after = Built)
 
 L84_2016[c(7,12,14)] <- apply(L84_2016[c(7,12,14)], 2, as.numeric )
 
@@ -186,6 +196,11 @@ L84_2017$BBL <- L84_2017$BBL %>% as.character(L84_2017$BBL)
 L84_2017 <- L84_2017 %>% 
   mutate("SizeBin" = cut(L84_2017$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
+
+L84_2017$Built <- as.numeric(L84_2017$Built)
+L84_2017 <- L84_2017 %>% 
+  mutate("AgeBin" = cut(L84_2017$Built, breaks = c(0, 1917, 1942, 1970,1990, 2022), include.lowest = TRUE, labels = c("PreWar", "PreModern", "Modern", "PostModern", "Current"), right = TRUE)) %>% 
+  relocate(AgeBin, .after = Built)
 
 L84_2017[c(7,12,14)] <- apply(L84_2017[c(7,12,14)], 2, as.numeric )
 
@@ -233,6 +248,11 @@ L84_2018 <- L84_2018 %>%
   mutate("SizeBin" = cut(L84_2018$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
 
+L84_2018$Built <- as.numeric(L84_2018$Built)
+L84_2018 <- L84_2018 %>% 
+  mutate("AgeBin" = cut(L84_2018$Built, breaks = c(0, 1917, 1942, 1970,1990, 2022), include.lowest = TRUE, labels = c("PreWar", "PreModern", "Modern", "PostModern", "Current"), right = TRUE)) %>% 
+  relocate(AgeBin, .after = Built)
+
 L84_2018[c(7,12,14)] <- apply(L84_2018[c(7,12,14)], 2, as.numeric )
 
 
@@ -278,6 +298,11 @@ L84_2019$BBL <- L84_2019$BBL %>% as.character(L84_2019$BBL)
 L84_2019 <- L84_2019 %>% 
   mutate("SizeBin" = cut(L84_2019$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
+
+L84_2019$Built <- as.numeric(L84_2019$Built)
+L84_2019 <- L84_2019 %>% 
+  mutate("AgeBin" = cut(L84_2019$Built, breaks = c(0, 1917, 1942, 1970,1990, 2022), include.lowest = TRUE, labels = c("PreWar", "PreModern", "Modern", "PostModern", "Current"), right = TRUE)) %>% 
+  relocate(AgeBin, .after = Built)
 
 L84_2019[c(7,12,14)] <- apply(L84_2019[c(7,12,14)], 2, as.numeric )
 
@@ -325,6 +350,11 @@ L84_2020$BBL <- L84_2020$BBL %>% as.character(L84_2020$BBL)
 L84_2020 <- L84_2020 %>% 
   mutate("SizeBin" = cut(L84_2020$GSF, breaks = c(0, 25000, 50000, 500000,10000000), include.lowest = TRUE, labels = c("Small", "MidSized", "Large", "Large"), right = TRUE)) %>% 
   relocate(SizeBin, .after = GSF)
+
+L84_2020$Built <- as.numeric(L84_2020$Built)
+L84_2020 <- L84_2020 %>% 
+  mutate("AgeBin" = cut(L84_2020$Built, breaks = c(0, 1917, 1942, 1970,1990, 2022), include.lowest = TRUE, labels = c("PreWar", "PreModern", "Modern", "PostModern", "Current"), right = TRUE)) %>% 
+  relocate(AgeBin, .after = Built)
 
 
 AllData <- SameStore <- bind_rows(L84_2015, L84_2016, L84_2017, L84_2018, L84_2019, L84_2020)
@@ -564,12 +594,11 @@ L84_2019 %>%
 
 L84_2019 %>% 
   filter(Type == "Office") %>% 
-  select(Name, EUI, SizeBin) -> OfficeEUI
+  select(Name, EUI, SizeBin, AgeBin) -> OfficeEUI
 
 p <- ggplot(OfficeEUI, aes(x=EUI)) +
   geom_density() +
-  geom_vline(aes(xintercept=mean(EUI)), 
-             color="blue", linetype="dashed", size=1)
+  facet_wrap( ~ AgeBin )
 
 p
 
