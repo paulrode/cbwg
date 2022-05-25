@@ -600,7 +600,15 @@ p <- ggplot(OfficeEUI, aes(x=EUI)) +
   geom_density() +
   facet_wrap( ~ AgeBin )
 
+s <- ggplot(OfficeEUI, aes(x=EUI, color = AgeBin)) +
+  geom_density() 
+
+w <- ggplot(OfficeEUI, aes(x=EUI, color = SizeBin)) +
+  geom_density() 
+
 p
+s
+w
 
 
 ```
