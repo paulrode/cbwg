@@ -592,23 +592,23 @@ L84_2019 %>%
 
 # Distribution of office energy use intensities using 2019
 
-L84_2019 %>% 
-  filter(Type == "Office") %>% 
+L84_2020 %>% 
+  filter(Type == "Office" & SizeBin == "Large") %>% 
   select(Name, EUI, SizeBin, AgeBin) -> OfficeEUI
 
-p <- ggplot(OfficeEUI, aes(x=EUI)) +
+p3 <- ggplot(OfficeEUI, aes(x=EUI)) +
   geom_density() +
   facet_wrap( ~ AgeBin )
 
-s <- ggplot(OfficeEUI, aes(x=EUI, color = AgeBin)) +
+s3 <- ggplot(OfficeEUI, aes(x=EUI, color = AgeBin)) +
   geom_density() 
 
-w <- ggplot(OfficeEUI, aes(x=EUI, color = SizeBin)) +
+w3 <- ggplot(OfficeEUI, aes(x=EUI, color = SizeBin)) +
   geom_density() 
 
-p
-s
-w
+p3
+s3
+w3
 
 
 ```
