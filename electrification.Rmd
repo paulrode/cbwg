@@ -15,8 +15,8 @@ my_packages <- c("tidyverse", "vroom" , "janitor" , "glue" ,  "tsibble" , "tidyt
 invisible( lapply(my_packages, require, character.only = TRUE))
 
 #Choose one working site:
-#place <- "Home"
- place <-  "work"
+  place <- "Home"
+# place <-  "work"
 
 
 #Set proper working Dir 
