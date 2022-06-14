@@ -34,12 +34,7 @@ if (!file.exists("data")) {
   "T" <- 100
 
 rm(place, my_packages )
-```
 
-
-
-
-```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Read in data 
 
@@ -465,17 +460,7 @@ LL84Emissions_2019 <- sum(SameStore %>% filter(Data == 2019)%>% summarise(tCO2e_
 LL84Emissions_2019/CityEmissions_2019
 
 
-```
-Discussion on data import.
-I imported years 2015 through 2020 from the NYC OpenData. To gain consistancy I filtered out sites that are not reprensented in all years based on thier associated Borough-Bloack-Lot (BBL) codes.  `r length(L84_2019$BBL)`
 
-
-Discussion on elimination of outliers and effect on types. 
-Changes to outliers strategy.
-Basic statistics of cleaned data 
-
-
-```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
 
 #TABLE Number of Types in each submission year
 
@@ -557,6 +542,15 @@ L84_2019 %>%
     select(Type, EnergyS, EnergyP, GSF, EUI) %>% 
   kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%  of Energy", "GSF", "EUI")) %>%     
   kable_styling(full_width = FALSE)
+
+
+###### Trying a new way to summarize ######
+# display summary by grouping subjects with age
+# tapply(L84_2019$Type , L84_2019$EUI, summary) 
+###### Trying a new way to summarize ######
+
+
+
 
 L84_2016 %>% 
   select(Type, T.Energy, GSF) %>% 
