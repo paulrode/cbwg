@@ -7,7 +7,7 @@ output:
 
 ---
 
-```{r Setup, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Data Setup, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
 
 
 
@@ -459,8 +459,11 @@ LL84Emissions_2019 <- sum(SameStore %>% filter(Data == 2019)%>% summarise(tCO2e_
 
 LL84Emissions_2019/CityEmissions_2019
 
+```
 
 
+
+```{r Tables, echo=FALSE, message=FALSE, warning=FALSE}
 
 #TABLE Number of Types in each submission year
 
@@ -470,12 +473,24 @@ data.frame("Description" = "Types", 'Yr 2015' = length(levels( L84_2015$Type )),
 
 
 
+
 # TABLE Number of Buildings in each Use Type by Submission
 
 AllData %>% 
   group_by(Data, Type) %>% 
   summarise( "No.Buildings" = sum(No.Buildings)) %>% 
-  spread(key = Data, value = No.Buildings) %>% 
+  spread(key = Data, value = No.Buildings) 
+# look this up https://statisticsglobe.com/dplyr-message-summarise-has-grouped-output-r
+
+```
+
+
+
+
+
+
+
+%>% 
   kable(digits = 3, 
         col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
         align = "lcccccc", 
@@ -581,12 +596,15 @@ L84_2019 %>%
     select(Type, GSF, CUI) %>% 
   kable(format = "html", digits = 9, col.names = c("Use Type", "GSF", "CUI/1000")) %>%     
   kable_styling(full_width = FALSE)
+```
 
 
+
+```{r EUIs, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Distribution of office energy use intensities using 2019
 # & SizeBin == "Large"
-
+# EUI Analysis 
 
 
 L84_2020 %>% 
@@ -606,7 +624,6 @@ w3 <- ggplot(OfficeEUI, aes(x=EUI, color = SizeBin)) +
 p3
 s3
 w3
-
 
 ```
 
