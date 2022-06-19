@@ -35,6 +35,7 @@ if (!file.exists("data")) {
 
 rm(place, my_packages )
 
+options(dplyr.summarise.inform = FALSE)
 
 # Read in data 
 
@@ -479,18 +480,7 @@ data.frame("Description" = "Types", 'Yr 2015' = length(levels( L84_2015$Type )),
 AllData %>% 
   group_by(Data, Type) %>% 
   summarise( "No.Buildings" = sum(No.Buildings)) %>% 
-  spread(key = Data, value = No.Buildings) 
-# look this up https://statisticsglobe.com/dplyr-message-summarise-has-grouped-output-r
-
-```
-
-
-
-
-
-
-
-%>% 
+  spread(key = Data, value = No.Buildings) %>% 
   kable(digits = 3, 
         col.names = c("Building Use Type", "2015", "2016", "2017", "2018", "2019", "2020"),
         align = "lcccccc", 
