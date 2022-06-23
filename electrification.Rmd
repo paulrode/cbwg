@@ -537,17 +537,18 @@ AllData %>%
 
 # Look at sf of submission by type by year
 
-# 6 Look at sf of submission by type by year with EUI
+# 6 Look at sf of submission by type by year with EUI and %'s
 L84_2019 %>% 
   select(Type, T.Energy, GSF) %>% 
   group_by(Type) %>% 
   summarise(EnergyS = sum(T.Energy), GSF = sum(GSF)) %>% 
   mutate("EnergyP" = EnergyS/sum(EnergyS)*100) %>% 
+  mutate("GSF_P" = GSF/sum(GSF)*100) %>% 
   mutate("EUI" = EnergyS / GSF) %>% 
   mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
     arrange(desc(EnergyP))  %>% 
-    select(Type, EnergyS, EnergyP, GSF, EUI) %>% 
-  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "%  of Energy", "GSF", "EUI")) %>%     kable_styling(full_width = FALSE)
+    select(Type, EnergyS, EnergyP, GSF_P, GSF, EUI) %>% 
+  kable(format = "html", digits = 9, col.names = c("Use Type", "T.Energy", "% Energy", "% GSF", "GSF", "EUI")) %>%     kable_styling(full_width = FALSE)
 
 # 7 
 
@@ -590,6 +591,17 @@ Basic Charts
 
 
 ```{r EUIs, echo=FALSE, message=FALSE, warning=FALSE}
+L84_2019 %>% 
+  select(Type, T.Energy, Steam, N.Gas, Elect, GHG, GSF) %>% 
+  group_by(Type) %>% 
+  summarise(T.Energy = sum(T.Energy), Steam = sum(Steam), N.Gas = sum(N.Gas), Elect = sum(Elect), GHG = sum(GHG) ,GSF = sum(GSF)) %>% 
+  mutate("EUI" = T.Energy / GSF) %>% 
+  mutate(across(where(is.numeric), ~ round(., digits = 3))) %>%
+    arrange(desc(T.Energy))  %>% 
+    select(Type, T.Energy, Steam, N.Gas, Elect, GHG, GSF, EUI) -> EnergyAllocation
+  
+EnergyAllocation %>% 
+  
 
 
 
