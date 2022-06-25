@@ -600,10 +600,24 @@ L84_2019 %>%
     arrange(desc(T.Energy))  %>% 
     select(Type, T.Energy, Steam, N.Gas, Elect, GHG, GSF, EUI) -> EnergyAllocation
   
-EnergyAllocation %>% 
+
+EnergyAllocation <- EnergyAllocation %>% 
   select(1, 3,4,5) %>% 
-  gather(key = "Fuel", Value, 2:4, -Type)
-  
+  gather(key = "Fuel", Value, 2:4, -Type, factor_key = TRUE)  
+
+EnergyAllocation %>% 
+  ggplot(aes(x = Type, y = Value, fill = Fuel)) +
+  geom_col(position = "stack")+
+  labs(title = "Energy Use by Building Type")
+  ggsave( plot = last_plot(), device = "jpeg",
+       path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
+
+  EnergyAllocation %>% 
+  ggplot(aes(x = Fuel, y = Value, )) +
+  geom_col(position = "stack")+
+  labs(title = "Energy Use by Fuel")
+  ggsave( plot = last_plot(), device = "jpeg",
+       path = "C:/Users/paulr/Documents/R/cbwg/", scale = 1 )
 
 
 
