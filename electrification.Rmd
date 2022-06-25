@@ -601,6 +601,8 @@ L84_2019 %>%
     select(Type, T.Energy, Steam, N.Gas, Elect, GHG, GSF, EUI) -> EnergyAllocation
   
 EnergyAllocation %>% 
+  select(1, 3,4,5) %>% 
+  gather(key = "Fuel", Value, 2:4, -Type)
   
 
 
